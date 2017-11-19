@@ -1,0 +1,35 @@
+{
+  "name": "phoebe",
+  "version": "0.1.0",
+  "description": "Electron WebGL application",
+  "main": "main.js",
+  "scripts": {
+    "start": "./node_modules/.bin/electron ./dist/main.js"
+  },
+  "keywords": [
+    "Electron",
+    "visualiser",
+    "webgl",
+    "volumetric"
+  ],
+  "author": "Oliver Cairncross",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "*",
+    "typescript": "2.6.1"
+  },
+  "dependencies": {
+    "@types/color-string": "^1.5.0",
+    "@types/jquery": "*",
+    "@types/jstree": "*",
+    "@types/numeral": "0.0.22",
+    "@types/pg": "*",
+    "@types/ws": "^3.2.0",
+    "color-string": "^1.5.2",
+    "jquery": "*",
+    "jstree": "*",
+    "numeral": "^2.0.6",
+    "pg": "*",
+    "ws": "^3.3.1"
+  }
+}

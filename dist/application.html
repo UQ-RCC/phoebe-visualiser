@@ -1,0 +1,63 @@
+﻿<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Tree test</title>    
+    <!-- <script src="bundle.js"></script> -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="style.min.css" />
+    <link rel="stylesheet" href="application.css" title="application" />
+</head>
+
+<script>
+    require('jstree');
+    require('./renderer.js')
+</script>
+
+<body>    
+<div id="navigator">
+    <i id="file-button" class="fa fa-floppy-o"></i>
+    <i id="camera-button" class="fa fa-camera"></i>
+    <i id="movie-button" class="fa fa-video-camera"></i>
+    <i id="process-button" class="fa fa-tasks"></i>
+</div>
+    
+<div id="file-selector" class="ap-closed">
+    <div id="nav-tree"></div>
+    <div id="channel-info">
+        frames: <span id="frames"></span>
+        frame: <span id="frame"></span>
+        status: <span id="frame-status"></span>
+    </div>
+</div>
+
+<div id="process" class="ap-closed">
+    <div>The</div>
+    <div>quick</div>
+    <div>brown</div>
+    <div>fox...</div>
+    <br />
+    <div>That the colt from old Regret had got away,</div>
+</div>
+    
+<div id="static-content">
+    
+    <div id="menu-bar">
+        <span id="file-name">file name</span>
+    </div>
+
+    <div id="dynamic-content">
+        <div id="canvas">
+            <div>
+                <pre><code id="code"></code></pre>
+            </div>
+        </div>
+        <div id="timebars"></div>
+    </div>
+
+</div>
+
+</body>
+</html>
+

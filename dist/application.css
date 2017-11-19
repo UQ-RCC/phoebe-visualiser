@@ -1,0 +1,184 @@
+﻿:root {
+    --icon-size: 20px;
+    --pad: calc(var(--icon-size) * 0.25);
+    --title-height: calc((2 * var(--pad)) + var(--icon-size));
+    --navigator-width: calc(var(--title-height) + 10px);
+    --navigator-colour: #24242d;
+}
+
+body {
+    font-family: Consolas;
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+    border-style: none;
+    margin: 0px 0px;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    user-select: none;
+}
+
+#navigator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: var(--navigator-colour);
+    min-width: var(--navigator-width);
+    max-width: var(--navigator-width)
+}
+
+#menu-bar {
+    background-color: var(--navigator-colour);
+    color: lightyellow;
+    font-size: var(--icon-size);
+    max-height: var(--title-height);
+    padding: var(--pad);
+    text-align: right;
+}
+
+#static-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+#dynamic-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+#file-selector {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--navigator-colour);
+    color: lightyellow;
+    overflow-y: hidden;
+    overflow-x: hidden;    
+}
+
+#channel-info {
+    background-color: brown;
+    align-self: stretch;
+    flex-shrink: 0;
+}
+
+#process {
+    white-space: nowrap;
+    background-color: var(--navigator-colour);
+    color: lightyellow;
+    overflow-y: hidden;
+    overflow-x: hidden;
+}
+
+.ap-open {
+    max-width: 100%;
+    padding-right: 15px;
+}
+
+.ap-closed {
+    max-width: 0px;
+}
+
+#nav-tree {
+    flex-grow: 1;
+    overflow-y: auto;
+    transition-timing-function: linear;
+    transition: 5000ms
+}
+
+#canvas {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    background-color: lightblue;
+    /*width: 600px;*/
+    border: 0;
+}
+
+/*icon colours*/
+
+.fa-folder, .fa-folder-open {
+    color: goldenrod
+}
+
+.fa-file {
+    color: beige
+}
+
+.fa-floppy-o, .fa-camera, .fa-video-camera, .fa-tasks {
+    color: lightyellow;
+    margin: var(--pad);
+    padding: var(--pad);
+    font-size: var(--icon-size);
+    border-style: solid;
+    border-color: var(--navigator-colour);
+    border-width: medium;
+    border-radius: 20%
+}
+
+.fa-floppy-o:hover, .fa-camera:hover, .fa-video-camera:hover, .fa-tasks:hover,
+.fa-plus-circle:hover {
+    cursor: pointer
+}
+
+.ap-icon-selected {
+    /*color: black;*/
+    /*font-weight: bold;*/
+    background-color: #54545d;
+    border-style: solid;
+    border-color: white;
+    border-width: medium;
+    border-radius: 20%
+}
+
+.fa-plus-circle {
+    font-size: 70%
+}
+
+.channel {
+    padding: 5px
+}
+
+.seg-input-value {
+    max-width: 50px;    
+}
+
+.segmentation-properties {
+    background-color: #54545d;
+    color: aliceblue;
+    border-style: solid;
+    border-width: medium;
+    border-color: #54545d;
+    border-radius: 8px;
+    padding: 1px;
+    margin: 3px;
+    cursor: pointer
+}
+
+.segmentation-properties-on {
+    border-color: darkorange;
+}
+
+.time-bar {
+    width: 100%;
+    height: 20px;
+    background-color: darkgrey;    
+}
+
+.time-bar-div {
+    width: 100%;
+}
+
+.time-bar-cached {    
+    /* color: rgb(136, 184, 120) */
+    color: rgb(91, 161, 73)
+}
+
+.time-bar-uncached {
+    color: rgb(107, 116, 240)
+}
+
+.time-bar-cursor {
+    color: red
+}
