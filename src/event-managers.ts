@@ -409,8 +409,7 @@ export class TimeBar {
                 this.defaultSegmentation.setCurrentFrame(this.currentValue);
                 console.log(`frame ${this.currentValue} : ${this.defaultSegmentation.frames[this.currentValue].bufferState} : ${this.defaultSegmentation.frames[this.currentValue].filename}`);
                 let bufferPack: BufferPack = new BufferPack(this.currentValue, this.defaultSegmentation.frames[this.currentValue].filename);
-                bufferPack.loadBufferPack();
-                //buffer stuff
+                bufferPack.loadBufferPack();                
                 let glContext: GLContext = new GLContext(bufferPack);
             }
         }

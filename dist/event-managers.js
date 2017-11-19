@@ -244,7 +244,6 @@ class TimeBar {
                 console.log(`frame ${this.currentValue} : ${this.defaultSegmentation.frames[this.currentValue].bufferState} : ${this.defaultSegmentation.frames[this.currentValue].filename}`);
                 let bufferPack = new frame_buffer_1.BufferPack(this.currentValue, this.defaultSegmentation.frames[this.currentValue].filename);
                 bufferPack.loadBufferPack();
-                //buffer stuff
                 let glContext = new gl_context_1.GLContext(bufferPack);
             }
         }
