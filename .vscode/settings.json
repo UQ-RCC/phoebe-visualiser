@@ -1,4 +1,12 @@
 {
+    "emeraldwalk.runonsave": {        
+        "commands": [
+            {
+                "match": "\\.ts$",
+                "cmd": "tsc -p ${workspaceRoot}\\tsconfig.json"
+            }
+        ]
+    },
     "cSpell.words": [
         "arraybuffer",
         "bufferpack",
