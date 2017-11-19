@@ -23,7 +23,7 @@ import * as path from 'path';
 import { log } from 'util';
 
 let ioPool = new ute.IOPool(5, ute.DummyGetter);
-//let dbIO = db.DBIO.getInstance();
+let dbIO = db.DBIO.getInstance();
 let dir = '20151201_Stow/TimeLapse1_minusLPS_Rab13JF646/matlab_decon/raw_files';
 let treeQuery = 'tree';
 export let cachePath = (config as any).cache;
@@ -36,8 +36,7 @@ $(document).ready(() =>
 });
 
 function popTree(): void
-{
-    let dbIO = db.DBIO.getInstance();
+{    
     dbIO.getTree(cachePath).then(data =>
     {
 
