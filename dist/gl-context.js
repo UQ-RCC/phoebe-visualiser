@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const event_managers_1 = require("./event-managers");
 const glm = require("gl-matrix");
 const $ = require("jquery");
-// ///<reference path='./glm/glm-0.7.d.ts' />
 class GLMatrix {
     constructor(bufferPack) {
         this.vCentreT = glm.vec3.create(); // Set when model loaded

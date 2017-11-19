@@ -1,15 +1,14 @@
 ﻿
-//TODO this should be an import
-///<reference path='./TSM/tsm-0.7.d.ts' />
+import * as glm from 'gl-matrix';
 
 // import * as async from "async";
 
-import { FrameController } from "./renderer";
+import { cachePath, FrameController } from './renderer';
 import { log } from "util";
 import { GLMatrix, GLContext } from "./gl-context";
 import { Frame, BufferState, GlobalStatus, BufferPack, Segmentation } from "./frame-buffer"
-import * as colorString from "color-string";
-import * as $ from "jquery";
+import * as colorString from 'color-string';
+import * as $ from 'jquery';
 
 export interface ChannelRecord
 {
@@ -19,7 +18,7 @@ export interface ChannelRecord
     frames: number
 }
 
-import * as fs from "fs";
+import * as fs from 'fs';
 
 /*
 / When moving the scene in the xy plane; account for the depth of field and perspective projection
@@ -27,29 +26,32 @@ import * as fs from "fs";
 */
 class PerspectiveDrag
 {
-    private canvasDimension: TSM.vec2;
-    private perspectiveClick: TSM.vec2;
+    private canvasDimension: glm.vec2;
+    private perspectiveClick: glm.vec2;
         
     constructor(x: number, y: number)
     {
-        this.canvasDimension = new TSM.vec2();
+        this.canvasDimension = glm.vec2.create();
         this.setScreenDimension(x, y);
     }
     
     public setScreenDimension(x: number, y: number): void
     {
-        this.canvasDimension.xy = [x, y];        
+        //this.canvasDimension.xy = [x, y];        
+        glm.vec2.set(this.canvasDimension, x, y);
     }
 
     public setClickVector(x: number, y: number): void
     {
-        this.perspectiveClick = new TSM.vec2([x, y]);
+        this.perspectiveClick = new glm.vec2([x, y]);
     }
 
-    public getIncDrag(x: number, y: number): TSM.vec3
+    public getIncDrag(x: number, y: number): glm.vec3
     {
-        let perspectiveDrag = new TSM.vec3([x - this.perspectiveClick.x, -(y - this.perspectiveClick.y), 0]);
-        this.perspectiveClick.xy = [x, y];
+        //let perspectiveDrag = new glm.vec3([x - this.perspectiveClick.x, -(y - this.perspectiveClick.y), 0]);
+        let perspectiveDrag = glm.vec3.fromValues(x - this.perspectiveClick[0], -(y - this.perspectiveClick[1]), 0);
+        //this.perspectiveClick.xy = [x, y];
+        glm.vec2.set(this.perspectiveClick, x, y);
         return perspectiveDrag;
     }
 
@@ -61,19 +63,19 @@ class PerspectiveDrag
 
 class ArcBall
 {
-    private centre: TSM.vec2;
+    private centre: glm.vec2;
     private radiusSquared: number;
-    private sphereClick: TSM.vec3;
-    private sphereDrag: TSM.vec3;
-    private axis: TSM.vec3;
+    private sphereClick: glm.vec3;
+    private sphereDrag: glm.vec3;
+    private axis: glm.vec3;
         
     constructor(x: number, y: number)
     {
-        this.centre = new TSM.vec2();
+        this.centre = glm.vec2.create();
         this.radiusSquared = 0;
-        this.sphereClick = new TSM.vec3();
-        this.sphereDrag = new TSM.vec3();
-        this.axis = new TSM.vec3();        
+        this.sphereClick = glm.vec3.create();
+        this.sphereDrag = glm.vec3.create();
+        this.axis = glm.vec3.create();        
         this.setScreenDimension(x, y);
 
     }
@@ -82,54 +84,66 @@ class ArcBall
     {
         x /= 2.0;
         y /= 2.0;
-        this.centre.x = x;
-        this.centre.y = y;
+        this.centre[0] = x;
+        this.centre[1] = y;
         this.radiusSquared = (x > y) ? x : y;
         this.radiusSquared *= this.radiusSquared;
     }
 
     public setClickVector(x: number, y: number): void
     {        
-        let centreClick = new TSM.vec2([x, y]);
-        centreClick.subtract(this.centre);
+        let centreClick = glm.vec2.fromValues(x, y);
+        //centreClick.subtract(this.centre);
+        glm.vec2.subtract(centreClick, centreClick, this.centre);
         this.sphereClick = this.mapToSphere(centreClick);        
     }
 
-    public getIncDragRotation(x: number, y: number): TSM.quat
+    public getIncDragRotation(x: number, y: number): glm.quat
     {
-        let centreDrag = new TSM.vec2([x, y]);
-        centreDrag.subtract(this.centre);
+        let centreDrag = glm.vec2.fromValues(x, y);
+        //centreDrag.subtract(this.centre);
+        glm.vec2.subtract(centreDrag, centreDrag, this.centre);
         this.sphereDrag = this.mapToSphere(centreDrag);
         
-        if (this.sphereClick.equals(this.sphereDrag))
+        // if (this.sphereClick.equals(this.sphereDrag))
+        // {            
+        //     return glm.quat.identity.copy();            
+        // }
+
+        if (glm.vec3.equals(this.sphereClick, this.sphereDrag))
         {
-            return TSM.quat.identity.copy();
+            return glm.quat.create();
         }
 
         let angle: number = this.angle(this.sphereClick, this.sphereDrag);        
-        this.axis = TSM.vec3.cross(this.sphereClick, this.sphereDrag);
-        this.axis.normalize();
-        let rotation: TSM.quat = TSM.quat.fromAxis(this.axis, angle);                
-        this.sphereClick = this.sphereDrag.copy();
+        //this.axis = glm.vec3.cross(this.sphereClick, this.sphereDrag);
+        glm.vec3.cross(this.axis, this.sphereClick, this.sphereDrag);
+        //this.axis.normalize();
+        glm.vec3.normalize(this.axis, this.axis);
+        //let rotation: glm.quat = glm.quat.fromAxis(this.axis, angle);        
+        let rotation = glm.quat.setAxisAngle(glm.quat.create(), this.axis, angle);
+        this.sphereClick = glm.vec3.clone(this.sphereDrag);
         return rotation;
     }
 
-    private mapToSphere(screenVector: TSM.vec2): TSM.vec3
+    private mapToSphere(screenVector: glm.vec2): glm.vec3
     {
-        let sphereVector: TSM.vec3 = new TSM.vec3;
-        sphereVector.x = screenVector.x;
-        sphereVector.y = -screenVector.y;
-        sphereVector.z = 0.0;
-        let l: number = screenVector.squaredLength();
+        let sphereVector: glm.vec3 = glm.vec3.create();
+        sphereVector[0] = screenVector[0];
+        sphereVector[1] = -screenVector[1];
+        sphereVector[2] = 0.0;
+        //let l: number = screenVector.squaredLength();
+        let l: number = glm.vec2.squaredLength(screenVector);
         if (l < this.radiusSquared)
         {
-            sphereVector.z = Math.sqrt(this.radiusSquared - l);
+            sphereVector[2] = Math.sqrt(this.radiusSquared - l);
         }
-        sphereVector.normalize();
+        //sphereVector.normalize();
+        glm.vec3.normalize(sphereVector, sphereVector);
         return sphereVector;
     }
     
-    private angle(v1: TSM.vec3, v2: TSM.vec3): number
+    private angle(v1: glm.vec3, v2: glm.vec3): number
     {   
         let cos: number = this.angleCos(v1, v2);
         cos = Math.min(cos, 1.0);
@@ -137,12 +151,14 @@ class ArcBall
         return Math.acos(cos);
     }
 
-    private angleCos(v1: TSM.vec3, v2: TSM.vec3): number
+    private angleCos(v1: glm.vec3, v2: glm.vec3): number
     {
-        let l1: number = v1.length();
-        let l2: number = v2.length();
-        let d: number = TSM.vec3.dot(v1, v2);
-        d = v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;        
+        //let l1: number = v1.length();
+        let l1: number = glm.vec3.length(v1);
+        //let l2: number = v2.length();
+        let l2: number = glm.vec3.length(v2);
+        let d: number = glm.vec3.dot(v1, v2);
+        d = v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
         return d / (l1 * l2);
     }
     
@@ -202,8 +218,8 @@ export class MouseManager
                 e.preventDefault();
                 let x = e.pageX - this.xOffset;
                 let y = e.pageY - this.yOffset;                
-                let rot: TSM.quat = this.arcBall.getIncDragRotation(x, y);
-                let drag: TSM.vec3 = this.perspectiveDrag.getIncDrag(x, y);
+                let rot: glm.quat = this.arcBall.getIncDragRotation(x, y);
+                let drag: glm.vec3 = this.perspectiveDrag.getIncDrag(x, y);
                 if (this.shiftDown)
                 {
                     this.lsData.incRotation(rot);
@@ -229,7 +245,7 @@ export class MouseManager
 
         canvas.onwheel = (e: WheelEvent) =>
         {
-            this.lsData.incTranslationZ(new TSM.vec3([0, 0, e.wheelDelta]));
+            this.lsData.incTranslationZ(new glm.vec3([0, 0, e.wheelDelta]));
             this.glContext.drawScene();
         }
         

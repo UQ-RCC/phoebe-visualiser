@@ -4,8 +4,6 @@ import { BufferState, BufferPack} from "./frame-buffer";
 import * as glm from "gl-matrix";
 import * as $ from "jquery";
 
-// ///<reference path='./glm/glm-0.7.d.ts' />
-
 export class GLMatrix
 {
     
