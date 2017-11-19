@@ -7,7 +7,7 @@ import * as $ from "jquery";
 export class GLMatrix
 {
     
-    vCentreT: TSM.vec3; // Set when model loded
+    vCentreT: TSM.vec3; // Set when model loaded
     vTranslateXY: TSM.vec3; // Incremented by input control on xy
     vTranslateZ: TSM.vec3; // Incremented by input control on Z
     qCurrentRot: TSM.quat; // Increment by input control
@@ -48,7 +48,7 @@ export class GLMatrix
         this.vTranslateXY.add(vNewTranslation);
     }
 
-    incTranslarionZ(vNewTranslation: TSM.vec3): void
+    incTranslationZ(vNewTranslation: TSM.vec3): void
     {
         this.vTranslateZ.add(vNewTranslation);
     }
@@ -102,12 +102,14 @@ export class GLContext
         if (!this.gl)
         {
             alert("Unable to initialize WebGL. Your browser may not support it.");
+            console.log("Unable to initialize WebGL. Your browser may not support it.");
         }
 
         const ext = this.gl.getExtension("OES_element_index_uint");
         if (!ext)
         {
             alert("OES_element_index_uint is missing");
+            console.log("OES_element_index_uint is missing");
             return;
         }
         
@@ -125,6 +127,10 @@ export class GLContext
         window.addEventListener("resize", () => { this.resize(); });
         //const timeKeeper: TimeKeep = new TimeKeep(xRange, this.drawScene, this.glMatrix);  // xRange is the slider
         //timeKeeper.start();
+
+        console.log("bufferpack created");
+        
+
     }
 
     resize(): void
@@ -206,7 +212,7 @@ export class GLContext
 
     }
 
-    //TODO fix these any's
+    //TODO fix these any types
     private getShader(id: any, type: any): WebGLShader
     {
         const shaderScript: HTMLScriptElement = document.getElementById(id) as HTMLScriptElement; //TODO reference to global document. Maybe change to use DocElements

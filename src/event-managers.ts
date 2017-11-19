@@ -22,7 +22,7 @@ export interface ChannelRecord
 import * as fs from "fs";
 
 /*
-/ When moving the scene in the xy plane; account for the depth of field and persprective projection
+/ When moving the scene in the xy plane; account for the depth of field and perspective projection
 / so that the object moves at the same rate as the mouse cursor located on the zero plane.
 */
 class PerspectiveDrag
@@ -229,7 +229,7 @@ export class MouseManager
 
         canvas.onwheel = (e: WheelEvent) =>
         {
-            this.lsData.incTranslarionZ(new TSM.vec3([0, 0, e.wheelDelta]));
+            this.lsData.incTranslationZ(new TSM.vec3([0, 0, e.wheelDelta]));
             this.glContext.drawScene();
         }
         
@@ -410,7 +410,7 @@ export class TimeBar {
                 console.log(`frame ${this.currentValue} : ${this.defaultSegmentation.frames[this.currentValue].bufferState} : ${this.defaultSegmentation.frames[this.currentValue].filename}`);
                 let bufferPack: BufferPack = new BufferPack(this.currentValue, this.defaultSegmentation.frames[this.currentValue].filename);
                 bufferPack.loadBufferPack();
-                //let glContext: GLContext = new GLContext(bufferPack);
+                let glContext: GLContext = new GLContext(bufferPack);
             }
         }
         this.draw();

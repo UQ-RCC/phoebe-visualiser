@@ -2,11 +2,12 @@
 //TODO this should be an import
 ///<reference path='./tsm-0.7.d.ts' />
 Object.defineProperty(exports, "__esModule", { value: true });
+const gl_context_1 = require("./gl-context");
 const frame_buffer_1 = require("./frame-buffer");
 const colorString = require("color-string");
 const $ = require("jquery");
 /*
-/ When moving the scene in the xy plane; account for the depth of field and persprective projection
+/ When moving the scene in the xy plane; account for the depth of field and perspective projection
 / so that the object moves at the same rate as the mouse cursor located on the zero plane.
 */
 class PerspectiveDrag {
@@ -141,7 +142,7 @@ class MouseManager {
             this.shiftDown = false;
         };
         canvas.onwheel = (e) => {
-            this.lsData.incTranslarionZ(new TSM.vec3([0, 0, e.wheelDelta]));
+            this.lsData.incTranslationZ(new TSM.vec3([0, 0, e.wheelDelta]));
             this.glContext.drawScene();
         };
     }
@@ -243,7 +244,7 @@ class TimeBar {
                 console.log(`frame ${this.currentValue} : ${this.defaultSegmentation.frames[this.currentValue].bufferState} : ${this.defaultSegmentation.frames[this.currentValue].filename}`);
                 let bufferPack = new frame_buffer_1.BufferPack(this.currentValue, this.defaultSegmentation.frames[this.currentValue].filename);
                 bufferPack.loadBufferPack();
-                //let glContext: GLContext = new GLContext(bufferPack);
+                let glContext = new gl_context_1.GLContext(bufferPack);
             }
         }
         this.draw();

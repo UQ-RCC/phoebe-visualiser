@@ -9,7 +9,7 @@ const gl_context_1 = require("./gl-context");
 const frame_buffer_1 = require("./frame-buffer");
 const $ = require("jquery");
 let ioPool = new ute.IOPool(5, ute.DummyGetter);
-//let dbIO = db.DBIO.getInstance();
+let dbIO = db.DBIO.getInstance();
 let dir = '20151201_Stow/TimeLapse1_minusLPS_Rab13JF646/matlab_decon/raw_files';
 let treeQuery = 'tree';
 exports.cachePath = config.cache;
@@ -19,7 +19,6 @@ $(document).ready(() => {
     navControl.createNavigator();
 });
 function popTree() {
-    let dbIO = db.DBIO.getInstance();
     dbIO.getTree(exports.cachePath).then(data => {
         let setController = new SetController(data.frameBuffer);
         $("#nav-tree").jstree({

@@ -25,7 +25,7 @@ class GLMatrix {
         const modelCentre = this.vCentreT.z + this.vTranslateZ.z;
         this.vTranslateXY.add(vNewTranslation);
     }
-    incTranslarionZ(vNewTranslation) {
+    incTranslationZ(vNewTranslation) {
         this.vTranslateZ.add(vNewTranslation);
     }
     getZPlane() {
@@ -54,10 +54,12 @@ class GLContext {
         this.gl = this.canvas.getContext("webgl") || this.canvas.getContext("experimental-webgl");
         if (!this.gl) {
             alert("Unable to initialize WebGL. Your browser may not support it.");
+            console.log("Unable to initialize WebGL. Your browser may not support it.");
         }
         const ext = this.gl.getExtension("OES_element_index_uint");
         if (!ext) {
             alert("OES_element_index_uint is missing");
+            console.log("OES_element_index_uint is missing");
             return;
         }
         let ramConst = 0x9048;
@@ -73,6 +75,7 @@ class GLContext {
         window.addEventListener("resize", () => { this.resize(); });
         //const timeKeeper: TimeKeep = new TimeKeep(xRange, this.drawScene, this.glMatrix);  // xRange is the slider
         //timeKeeper.start();
+        console.log("bufferpack created");
     }
     resize() {
         if ((this.width !== this.canvas.clientWidth) || (this.height !== this.canvas.clientHeight)) {
@@ -130,7 +133,7 @@ class GLContext {
         this.normalAttribute = this.gl.getAttribLocation(this.shaderProgram, "aNormal");
         this.gl.enableVertexAttribArray(this.normalAttribute);
     }
-    //TODO fix these any's
+    //TODO fix these any types
     getShader(id, type) {
         const shaderScript = document.getElementById(id); //TODO reference to global document. Maybe change to use DocElements
         if (!shaderScript) {

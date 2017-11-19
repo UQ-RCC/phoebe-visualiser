@@ -4,8 +4,9 @@
         // "sourceRoot": "../src",
         "sourceMap": true,
         "noImplicitAny": false,
-        "module": "commonjs",        
-        "target": "es2016"
+        "module": "commonjs",
+        "target": "es2016",
+        "watch": true
     },
     "exclude": [
         "node_modules"
