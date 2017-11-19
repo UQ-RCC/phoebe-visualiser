@@ -1,6 +1,6 @@
 "use strict";
 //TODO this should be an import
-///<reference path='./tsm-0.7.d.ts' />
+///<reference path='./TSM/tsm-0.7.d.ts' />
 Object.defineProperty(exports, "__esModule", { value: true });
 const gl_context_1 = require("./gl-context");
 const frame_buffer_1 = require("./frame-buffer");

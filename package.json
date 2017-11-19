@@ -19,13 +19,16 @@
     "typescript": "2.6.1"
   },
   "dependencies": {
+    "@diamondlovesyou/tsm": "^0.7.4",
     "@types/color-string": "^1.5.0",
+    "@types/gl-matrix": "^2.4.0",
     "@types/jquery": "*",
     "@types/jstree": "*",
     "@types/numeral": "0.0.22",
     "@types/pg": "*",
     "@types/ws": "^3.2.0",
     "color-string": "^1.5.2",
+    "gl-matrix": "^2.4.0",
     "jquery": "*",
     "jstree": "*",
     "numeral": "^2.0.6",

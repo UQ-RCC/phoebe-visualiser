@@ -1,6 +1,6 @@
 ﻿
 //TODO this should be an import
-///<reference path='./tsm-0.7.d.ts' />
+///<reference path='./TSM/tsm-0.7.d.ts' />
 
 // import * as async from "async";
 

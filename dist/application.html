@@ -10,6 +10,52 @@
     <link rel="stylesheet" href="application.css" title="application" />
 </head>
 
+<script id="shader-vs" type="x-shader/x-vertex">
+    precision mediump float;
+
+    attribute vec3 aVertexPosition;
+    attribute vec3 aNormal;
+
+    varying vec3 vNormal;
+
+    uniform mat4 uMVMatrix;
+    uniform mat4 uPMatrix;
+
+    void main(void)
+    {
+        vNormal = aNormal;
+        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+    }
+</script>
+
+<script id="shader-fs" type="x-shader/x-fragment">
+    precision mediump float;
+    varying vec3 vNormal;
+
+    uniform mat4 uPMatrix;
+    uniform mat4 uMVMatrix;
+
+    float getDiffuse()
+    {
+        //vec3 normal = normalize(mat3(uMVMatrix) * mat3(uPMatrix) * vNormal);
+        vec3 normal = normalize(mat3(uMVMatrix) * vNormal);
+        float diffuseCoefficient = max(0.0, dot(normal, vec3(0.0, 0.0, 1.0)));
+        return diffuseCoefficient;
+    }
+    
+    void main(void)
+    {
+        vec3 c = vec3(0.3, 0.3, 0.7);
+        float local_light = 0.5 + (0.7 * getDiffuse());
+        // float local_light = 0.5;
+        gl_FragColor = vec4(local_light * c.rgb, 1.0);
+
+        // gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);                    
+        // gl_FragColor = vec4(vNormal.x, vNormal.y, vNormal.z, 1.0);
+    }
+
+</script>
+
 <script>
     require('jstree');
     require('./renderer.js')
@@ -48,11 +94,8 @@
     </div>
 
     <div id="dynamic-content">
-        <div id="canvas">
-            <div>
-                <pre><code id="code"></code></pre>
-            </div>
-        </div>
+        <canvas id="canvas">          
+        </canvas>
         <div id="timebars"></div>
     </div>
 

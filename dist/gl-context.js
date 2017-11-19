@@ -1,42 +1,58 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const event_managers_1 = require("./event-managers");
-///<reference path='./tsm-0.7.d.ts' />
+const glm = require("gl-matrix");
+const $ = require("jquery");
+// ///<reference path='./glm/glm-0.7.d.ts' />
 class GLMatrix {
     constructor(bufferPack) {
+        this.vCentreT = glm.vec3.create(); // Set when model loaded
+        this.vTranslateXY = glm.vec3.create(); // Incremented by input control on xy
+        this.vTranslateZ = glm.vec3.create(); // Incremented by input control on Z
+        this.qCurrentRot = glm.quat.create(); // Increment by input control
+        this.mPerspectiveT = glm.mat4.create();
+        this.mWorldT = glm.mat4.create();
+        this.mCenterT = glm.mat4.create();
         console.log(`Initialize GLMatrix`);
-        this.qCurrentRot = TSM.quat.identity.copy();
+        // this.qCurrentRot = glm.quat.identity.clone();
+        glm.quat.identity(this.qCurrentRot);
         this.modelRadius = Math.max(bufferPack.xMag, bufferPack.yMag, bufferPack.zMag) / 2.0;
-        this.vCentreT = new TSM.vec3([
-            (bufferPack.xMag / 2.0 + bufferPack.b[0]) * -1.0,
-            (bufferPack.yMag / 2.0 + bufferPack.b[2]) * -1.0,
-            (bufferPack.zMag / 2.0 + bufferPack.b[4]) * -1.0
-        ]);
-        this.mPerspectiveT = TSM.mat4.perspective(20.0, 640 / 480, 100, 10000); //TODO looks a bit suspect.
-        this.mCenterT = TSM.mat4.identity.copy();
-        this.mCenterT.translate(this.vCentreT);
-        this.vTranslateZ = new TSM.vec3([0, 0, -750]);
-        this.vTranslateXY = new TSM.vec3([0, 0, 0]);
+        this.vCentreT = glm.vec3.fromValues((bufferPack.xMag / 2.0 + bufferPack.b[0]) * -1.0, (bufferPack.yMag / 2.0 + bufferPack.b[2]) * -1.0, (bufferPack.zMag / 2.0 + bufferPack.b[4]) * -1.0);
+        //this.mPerspectiveT = glm.mat4.perspective(20.0, 640 / 480, 100, 10000);  //TODO looks a bit suspect.
+        glm.mat4.perspective(this.mPerspectiveT, 20.0, 640 / 480, 100, 10000);
+        //this.mCenterT = glm.mat4.identity.copy();
+        this.mCenterT = glm.mat4.create();
+        //this.mCenterT.translate(this.vCentreT);
+        glm.mat4.translate(this.mCenterT, this.mCenterT, this.vCentreT);
+        this.vTranslateZ = glm.vec3.fromValues(0, 0, -750);
+        this.vTranslateXY = glm.vec3.fromValues(0, 0, 0);
     }
     incRotation(qNewRotation) {
-        this.qCurrentRot = qNewRotation.multiply(this.qCurrentRot);
+        //this.qCurrentRot = qNewRotation.multiply(this.qCurrentRot);
+        glm.quat.multiply(this.qCurrentRot, this.qCurrentRot, qNewRotation);
     }
     incTranslationXY(vNewTranslation) {
-        const modelCentre = this.vCentreT.z + this.vTranslateZ.z;
-        this.vTranslateXY.add(vNewTranslation);
+        const modelCentre = this.vCentreT[2] + this.vTranslateZ[2];
+        //this.vTranslateXY.add(vNewTranslation);
+        glm.vec3.add(this.vTranslateXY, this.vTranslateXY, vNewTranslation);
     }
     incTranslationZ(vNewTranslation) {
-        this.vTranslateZ.add(vNewTranslation);
+        //this.vTranslateZ.add(vNewTranslation);
+        glm.vec3.add(this.vTranslateZ, this.vTranslateZ, vNewTranslation);
     }
     getZPlane() {
-        return this.vCentreT.z + this.vTranslateZ.z;
+        return this.vCentreT[2] + this.vTranslateZ[2];
     }
     getWorldTransform() {
-        const mWorldT = TSM.mat4.identity.copy();
-        mWorldT.translate(this.vTranslateZ);
-        mWorldT.translate(this.vTranslateXY);
-        mWorldT.multiply(this.qCurrentRot.toMat4());
-        mWorldT.translate(this.vCentreT);
+        const mWorldT = glm.mat4.create();
+        //mWorldT.translate(this.vTranslateZ);
+        glm.mat4.translate(this.mWorldT, this.mWorldT, this.vTranslateZ);
+        //mWorldT.translate(this.vTranslateXY);
+        glm.mat4.translate(this.mWorldT, this.mWorldT, this.vTranslateXY);
+        //mWorldT.multiply(this.qCurrentRot.toMat4());        
+        glm.mat4.multiply(this.mWorldT, this.mWorldT, glm.mat4.fromQuat(glm.mat4.create(), this.qCurrentRot));
+        //mWorldT.translate(this.vCentreT);
+        glm.mat4.translate(mWorldT, mWorldT, this.vCentreT);
         return mWorldT;
     }
 }
@@ -48,7 +64,7 @@ class GLContext {
         this.height = 0;
         this.horizAspect = 1;
         this.drawCount = 0;
-        // this.canvas = this.docElements.canvas; //TODO fix this...
+        this.canvas = $("#canvas").get(0);
         this.currentBufferPack = bufferPack;
         this.glMatrix = new GLMatrix(this.currentBufferPack); //TODO bad coding get init parameters from FrameController instead
         this.gl = this.canvas.getContext("webgl") || this.canvas.getContext("experimental-webgl");
@@ -62,9 +78,9 @@ class GLContext {
             console.log("OES_element_index_uint is missing");
             return;
         }
-        let ramConst = 0x9048;
-        let totalNvidiaRam = this.gl.getParameter(ramConst);
-        console.log(`video "${ramConst}" =  ${totalNvidiaRam}`);
+        //let ramConst: number = 0x9048;
+        //let totalNvidiaRam: number = this.gl.getParameter(ramConst);
+        //console.log(`video "${ramConst}" =  ${totalNvidiaRam}`);
         this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
         this.gl.enable(this.gl.DEPTH_TEST);
         this.gl.depthFunc(this.gl.LEQUAL);
@@ -96,7 +112,9 @@ class GLContext {
         // docElements.updateFrame(this.currentBufferPack.frameNumber);
         this.drawCount++;
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-        const mPerspective = TSM.mat4.perspective(45, this.width / this.height, 10, 3000.0); //TODO near far need to be set depending on scene.
+        //const mPerspective: glm.mat4 = glm.mat4.perspective(45, this.width / this.height, 10, 3000.0); //TODO near far need to be set depending on scene.
+        // let mPerspective: glm.mat4 = glm.mat4.create();
+        const mPerspective = glm.mat4.perspective(glm.mat4.create(), 45, this.width / this.height, 10, 3000.0);
         this.setMatrixUniforms(mPerspective, this.glMatrix.getWorldTransform()); //<-- Set uniforms here.
         //TODO buffer attributes should not be set every draw call!!
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayBufferId);
@@ -166,9 +184,11 @@ class GLContext {
     }
     setMatrixUniforms(perspectiveMatrix, mvMatrix) {
         const pUniform = this.gl.getUniformLocation(this.shaderProgram, "uPMatrix");
-        this.gl.uniformMatrix4fv(pUniform, false, new Float32Array(perspectiveMatrix.all()));
+        //this.gl.uniformMatrix4fv(pUniform, false, new Float32Array(perspectiveMatrix.all()));
+        this.gl.uniformMatrix4fv(pUniform, false, new Float32Array(perspectiveMatrix));
         const mvUniform = this.gl.getUniformLocation(this.shaderProgram, "uMVMatrix");
-        this.gl.uniformMatrix4fv(mvUniform, false, new Float32Array(mvMatrix.all()));
+        //this.gl.uniformMatrix4fv(mvUniform, false, new Float32Array(mvMatrix.all()));
+        this.gl.uniformMatrix4fv(mvUniform, false, new Float32Array(mvMatrix));
     }
 }
 exports.GLContext = GLContext;
