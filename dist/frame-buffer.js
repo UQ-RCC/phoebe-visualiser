@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const fs = require("fs");
 const renderer_1 = require("./renderer");
 const database_1 = require("./database");
+const ute = require("./utilities");
 //Used for OpenGL context
 class BufferPack {
     constructor(frameNumber, fileName) {
@@ -54,6 +55,24 @@ class BufferPack {
     }
     toString() {
         return `bufferPack ${this.frameNumber}: ${this.state} [${this.xMag},${this.yMag},${this.zMag}] ${this.numIndices}`;
+    }
+    printDeepString() {
+        let iView = new DataView(this.indexBuffer);
+        let pView = new DataView(this.arrayBuffer);
+        let debug = {};
+        debug.numIndices = ute.numTo(this.numIndices);
+        debug.byteIndices = ute.numTo(this.indexBuffer.byteLength);
+        debug.numPoints = ute.numTo(this.numPoints);
+        debug.byteArray = ute.numTo(this.arrayBuffer.byteLength);
+        debug.indices = [];
+        for (let i = 0; i < 30; i++) {
+            debug.indices.push(ute.numTo(iView.getInt32(i)));
+        }
+        debug.points = [];
+        for (let i = 0; i < 27; i++) {
+            debug.points.push(pView.getFloat32(i));
+        }
+        console.log(`${JSON.stringify(debug, null, 3)}`);
     }
 }
 exports.BufferPack = BufferPack;

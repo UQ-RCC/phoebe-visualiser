@@ -324,8 +324,11 @@ export class FrameController
     setFrame(newFrame: number) {
         const bufferPack: BufferPack = this.frames[newFrame];
         loadWindow(bufferPack, 10, this);
-        if (bufferPack.state === BufferState.loaded) {
-            this.glContext.drawScene(bufferPack);
+        if (bufferPack.state === BufferState.loaded)
+        {
+            console.log(`pre draw scene`);
+            this.glContext.drawScene("FrameController::setFrame", bufferPack);
+            console.log(`post draw scene`);
         }
         this.currentFrame = newFrame;
     }
@@ -337,8 +340,9 @@ export class FrameController
         {
             this.glContext = new GLContext(bufferPack);
         }
-        if (this.currentFrame === bufferPack.frameNumber) {
-            this.glContext.drawScene(bufferPack); //TODO perhaps pass the buffer pack itself in
+        if (this.currentFrame === bufferPack.frameNumber)
+        {
+            this.glContext.drawScene("FrameController::fileLoaded", bufferPack); //TODO perhaps pass the buffer pack itself in
         }
     }
 

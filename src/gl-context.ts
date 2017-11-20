@@ -144,9 +144,6 @@ export class GLContext
         //const timeKeeper: TimeKeep = new TimeKeep(xRange, this.drawScene, this.glMatrix);  // xRange is the slider
         //timeKeeper.start();
 
-        console.log("bufferpack created");
-        
-
     }
 
     resize(): void
@@ -159,22 +156,26 @@ export class GLContext
             this.canvas.width = this.width;
             this.canvas.height = this.height;
             this.gl.viewport(0, 0, this.width, this.height); // Change to this...
-            this.drawScene();
+            this.drawScene("GLContext::resize");
         }
         
     }
 
-    drawScene(newBufferPack?: BufferPack): void
+    drawScene(from: string, newBufferPack?: BufferPack): void
     {
+
+        console.log(`Draw scene (${from}) : ${newBufferPack ? newBufferPack.numIndices : "null"}`);
+
         if (newBufferPack)
         {
             this.currentBufferPack = newBufferPack;
             this.transferBuffers(this.currentBufferPack);
         }
 
-        // docElements.updateFrame(this.currentBufferPack.frameNumber);
         this.drawCount++;
         
+        console.log(`Buffer pack ${this.currentBufferPack.toString()}`);
+        this.currentBufferPack.printDeepString();
         
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
@@ -183,6 +184,8 @@ export class GLContext
         const mPerspective = glm.mat4.perspective(glm.mat4.create(), 45, this.width / this.height, 10, 3000.0);
 
         this.setMatrixUniforms(mPerspective, this.glMatrix.getWorldTransform()); //<-- Set uniforms here.
+
+
 
         //TODO buffer attributes should not be set every draw call!!
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayBufferId);

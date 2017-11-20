@@ -26,6 +26,28 @@ function numToMB(o) {
     }
 }
 exports.numToMB = numToMB;
+function numTo(o) {
+    if (typeof o == 'number') {
+        return numeral(o).format('0,');
+    }
+    if (Array.isArray(o)) {
+        let out = [];
+        o.map(v => out.push(numToMB(v)));
+        return out;
+    }
+    else {
+        let out = new Object();
+        for (let p in o) {
+            let pd = Object.getOwnPropertyDescriptor(o, p);
+            if (typeof pd.value === 'number') {
+                pd.value = numeral(pd.value).format('0,');
+            }
+            Object.defineProperty(out, p, pd);
+        }
+        return out;
+    }
+}
+exports.numTo = numTo;
 class AbstractGetter {
     constructor(xhrPool, id) {
         this.ioPool = xhrPool;

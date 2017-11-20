@@ -228,7 +228,7 @@ export class MouseManager
                 {
                     this.lsData.incTranslationXY(drag);
                 }
-                this.glContext.drawScene();
+                this.glContext.drawScene("MouseManager::onmousemove");
             }
             return false;
         }
@@ -246,7 +246,7 @@ export class MouseManager
         canvas.onwheel = (e: WheelEvent) =>
         {
             this.lsData.incTranslationZ(new glm.vec3([0, 0, e.wheelDelta]));
-            this.glContext.drawScene();
+            this.glContext.drawScene("MouseManager::onwheel");
         }
         
     }

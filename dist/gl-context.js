@@ -90,7 +90,6 @@ class GLContext {
         window.addEventListener("resize", () => { this.resize(); });
         //const timeKeeper: TimeKeep = new TimeKeep(xRange, this.drawScene, this.glMatrix);  // xRange is the slider
         //timeKeeper.start();
-        console.log("bufferpack created");
     }
     resize() {
         if ((this.width !== this.canvas.clientWidth) || (this.height !== this.canvas.clientHeight)) {
@@ -100,16 +99,18 @@ class GLContext {
             this.canvas.width = this.width;
             this.canvas.height = this.height;
             this.gl.viewport(0, 0, this.width, this.height); // Change to this...
-            this.drawScene();
+            this.drawScene("GLContext::resize");
         }
     }
-    drawScene(newBufferPack) {
+    drawScene(from, newBufferPack) {
+        console.log(`Draw scene (${from}) : ${newBufferPack ? newBufferPack.numIndices : "null"}`);
         if (newBufferPack) {
             this.currentBufferPack = newBufferPack;
             this.transferBuffers(this.currentBufferPack);
         }
-        // docElements.updateFrame(this.currentBufferPack.frameNumber);
         this.drawCount++;
+        console.log(`Buffer pack ${this.currentBufferPack.toString()}`);
+        this.currentBufferPack.printDeepString();
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         //const mPerspective: glm.mat4 = glm.mat4.perspective(45, this.width / this.height, 10, 3000.0); //TODO near far need to be set depending on scene.
         // let mPerspective: glm.mat4 = glm.mat4.create();

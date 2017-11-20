@@ -32,6 +32,35 @@ export function numToMB(o: any): Object
 	}
 }
 
+export function numTo(o: any): Object
+{
+	if (typeof o == 'number')
+	{
+		return numeral(o as number).format('0,');
+	}
+
+	if (Array.isArray(o))
+	{
+		let out: Object[] = [];
+		o.map(v => out.push(numToMB(v)));
+		return out;
+	}
+	else
+	{
+		let out: Object = new Object();
+		for (let p in o)
+		{			
+			let pd = Object.getOwnPropertyDescriptor(o, p);
+			if (typeof pd.value === 'number')
+			{
+				pd.value = numeral(pd.value).format('0,');
+			}
+			Object.defineProperty(out, p, pd);
+		}
+		return out;
+	}
+}
+
 abstract class AbstractGetter
 {
 	protected readonly ioPool: IOPool;
