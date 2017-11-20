@@ -216,12 +216,15 @@ export class MouseManager
         {
             if (this.mouseDown)
             {
-                e.preventDefault();
+
+                console.log(`${e.shiftKey}`);
+
+                e.preventDefault();                
                 let x = e.pageX - this.xOffset;
                 let y = e.pageY - this.yOffset;                
                 let rot: glm.quat = this.arcBall.getIncDragRotation(x, y);
                 let drag: glm.vec3 = this.perspectiveDrag.getIncDrag(x, y);
-                if (this.shiftDown)
+                if (e.shiftKey)
                 {
                     this.glMatrix.incRotation(rot);
                 }
@@ -237,11 +240,13 @@ export class MouseManager
         canvas.onkeydown = (e: KeyboardEvent) =>
         {
             this.shiftDown = true;
+            console.log(`shift down`);
         }
 
         canvas.onkeyup = (e: KeyboardEvent) =>
         {
             this.shiftDown = false;
+            console.log(`shift up`);
         }
 
         canvas.onwheel = (e: WheelEvent) =>

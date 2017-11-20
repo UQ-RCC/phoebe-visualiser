@@ -84,10 +84,9 @@ export class GLMatrix
         //mWorldT.translate(this.vTranslateXY);
         glm.mat4.translate(mWorldT, mWorldT, this.vTranslateXY);
         //mWorldT.multiply(this.qCurrentRot.toMat4());        
-        //glm.mat4.multiply(this.mWorldT, this.mWorldT, glm.mat4.fromQuat(glm.mat4.create(), this.qCurrentRot));
+        glm.mat4.multiply(mWorldT, mWorldT, glm.mat4.fromQuat(glm.mat4.create(), this.qCurrentRot));
         //mWorldT.translate(this.vCentreT);
-        //glm.mat4.translate(this.mWorldT, this.mWorldT, this.vCentreT);
-        console.log(`actual: ${JSON.stringify(this.mWorldT,null,3)}`); 
+        glm.mat4.translate(mWorldT, mWorldT, this.vCentreT);
         return mWorldT;
     }
 
@@ -198,7 +197,7 @@ export class GLContext
         // let mPerspective: glm.mat4 = glm.mat4.create();
         const mPerspective = glm.mat4.perspective(glm.mat4.create(), 45, this.width / this.height, 10, 3000.0);
 
-        console.log(`context: ${JSON.stringify(this.glMatrix.getWorldTransform(),null,3)}`);
+        //console.log(`context: ${JSON.stringify(this.glMatrix.getWorldTransform(),null,3)}`);
         this.setMatrixUniforms(mPerspective, this.glMatrix.getWorldTransform()); //<-- Set uniforms here.
         this.transferBuffers(this.currentBufferPack);
 
