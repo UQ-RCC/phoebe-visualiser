@@ -19,7 +19,7 @@ class PerspectiveDrag {
         glm.vec2.set(this.canvasDimension, x, y);
     }
     setClickVector(x, y) {
-        this.perspectiveClick = new glm.vec2([x, y]);
+        this.perspectiveClick = glm.vec2.fromValues(x, y);
     }
     getIncDrag(x, y) {
         //let perspectiveDrag = new glm.vec3([x - this.perspectiveClick.x, -(y - this.perspectiveClick.y), 0]);
@@ -108,7 +108,7 @@ class ArcBall {
 }
 class MouseManager {
     constructor(canvas, glContext, glMatrix) {
-        this.lsData = glMatrix;
+        this.glMatrix = glMatrix;
         this.canvas = canvas;
         this.xOffset = this.canvas.offsetLeft;
         this.yOffset = this.canvas.offsetTop;
@@ -141,10 +141,10 @@ class MouseManager {
                 let rot = this.arcBall.getIncDragRotation(x, y);
                 let drag = this.perspectiveDrag.getIncDrag(x, y);
                 if (this.shiftDown) {
-                    this.lsData.incRotation(rot);
+                    this.glMatrix.incRotation(rot);
                 }
                 else {
-                    this.lsData.incTranslationXY(drag);
+                    this.glMatrix.incTranslationXY(drag);
                 }
                 this.glContext.drawScene("MouseManager::onmousemove");
             }
@@ -157,7 +157,8 @@ class MouseManager {
             this.shiftDown = false;
         };
         canvas.onwheel = (e) => {
-            this.lsData.incTranslationZ(new glm.vec3([0, 0, e.wheelDelta]));
+            this.glMatrix.incTranslationZ(glm.vec3.fromValues(0, 0, e.wheelDelta));
+            console.log(`mouse: ${JSON.stringify(this.glMatrix.getWorldTransform(), null, 3)}`);
             this.glContext.drawScene("MouseManager::onwheel");
         };
     }
@@ -259,6 +260,9 @@ class TimeBar {
                 console.log(`frame ${this.currentValue} : ${this.defaultSegmentation.frames[this.currentValue].bufferState} : ${this.defaultSegmentation.frames[this.currentValue].filename}`);
                 let bufferPack = new frame_buffer_1.BufferPack(this.currentValue, this.defaultSegmentation.frames[this.currentValue].filename);
                 bufferPack.loadBufferPack();
+                //let bufferPack: BufferPack = new BufferPack(this.currentValue, "");
+                //let buffer: Buffer = fs.readFileSync(`D:/data/light sheet/0001.buf`);
+                //bufferPack.setArrayBuffer(buffer.buffer);
                 let glContext = new gl_context_1.GLContext(bufferPack);
             }
         }

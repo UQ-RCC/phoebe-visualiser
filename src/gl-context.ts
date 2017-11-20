@@ -3,6 +3,7 @@ import { MouseManager } from "./event-managers";
 import { BufferState, BufferPack} from "./frame-buffer";
 import * as glm from "gl-matrix";
 import * as $ from "jquery";
+import * as fs from "fs";
 
 export class GLMatrix
 {
@@ -21,6 +22,12 @@ export class GLMatrix
     {
 
         console.log(`Initialize GLMatrix`);
+
+        //let buffer: Buffer = fs.readFileSync(`D:/data/electron cache/07/b4/07b41693-1bf6-4f29-b1a3-e4a1cdc5730b`);
+        let buffer: Buffer = fs.readFileSync(`D:/data/light sheet/0001.buf`);
+        let tempBufferPack = new BufferPack(0, 'temp');        
+        tempBufferPack.setArrayBuffer(buffer.buffer);
+        bufferPack = tempBufferPack;
         
         // this.qCurrentRot = glm.quat.identity.clone();
         glm.quat.identity(this.qCurrentRot);
@@ -41,7 +48,7 @@ export class GLMatrix
         //this.mCenterT.translate(this.vCentreT);
         glm.mat4.translate(this.mCenterT, this.mCenterT, this.vCentreT);
 
-        this.vTranslateZ = glm.vec3.fromValues(0, 0, -750);
+        this.vTranslateZ = glm.vec3.fromValues(0, 0, 1000);
         this.vTranslateXY = glm.vec3.fromValues(0, 0, 0);
 
     }
@@ -50,19 +57,18 @@ export class GLMatrix
     {
         //this.qCurrentRot = qNewRotation.multiply(this.qCurrentRot);
         glm.quat.multiply(this.qCurrentRot, this.qCurrentRot, qNewRotation);
+        console.log(`rotating...`);
     }
 
     incTranslationXY(vNewTranslation: glm.vec3): void
     {
-        const modelCentre: number = this.vCentreT[2] + this.vTranslateZ[2];
-        //this.vTranslateXY.add(vNewTranslation);
+        const modelCentre: number = this.vCentreT[2] + this.vTranslateZ[2]; //TODO what's this??        
         glm.vec3.add(this.vTranslateXY, this.vTranslateXY, vNewTranslation);
     }
 
     incTranslationZ(vNewTranslation: glm.vec3): void
-    {
-        //this.vTranslateZ.add(vNewTranslation);
-        glm.vec3.add(this.vTranslateZ, this.vTranslateZ, vNewTranslation);
+    {        
+        glm.vec3.add(this.vTranslateZ, this.vTranslateZ, vNewTranslation);        
     }
 
     getZPlane(): number
@@ -74,13 +80,14 @@ export class GLMatrix
     {
         const mWorldT = glm.mat4.create();
         //mWorldT.translate(this.vTranslateZ);
-        glm.mat4.translate(this.mWorldT, this.mWorldT, this.vTranslateZ);
+        glm.mat4.translate(mWorldT, mWorldT, this.vTranslateZ);        
         //mWorldT.translate(this.vTranslateXY);
-        glm.mat4.translate(this.mWorldT, this.mWorldT, this.vTranslateXY);
+        glm.mat4.translate(mWorldT, mWorldT, this.vTranslateXY);
         //mWorldT.multiply(this.qCurrentRot.toMat4());        
-        glm.mat4.multiply(this.mWorldT, this.mWorldT, glm.mat4.fromQuat(glm.mat4.create(), this.qCurrentRot));
+        //glm.mat4.multiply(this.mWorldT, this.mWorldT, glm.mat4.fromQuat(glm.mat4.create(), this.qCurrentRot));
         //mWorldT.translate(this.vCentreT);
-        glm.mat4.translate(mWorldT, mWorldT, this.vCentreT);
+        //glm.mat4.translate(this.mWorldT, this.mWorldT, this.vCentreT);
+        console.log(`actual: ${JSON.stringify(this.mWorldT,null,3)}`); 
         return mWorldT;
     }
 
@@ -164,18 +171,26 @@ export class GLContext
     drawScene(from: string, newBufferPack?: BufferPack): void
     {
 
-        console.log(`Draw scene (${from}) : ${newBufferPack ? newBufferPack.numIndices : "null"}`);
-
-        if (newBufferPack)
+        if (!this.currentBufferPack)
         {
-            this.currentBufferPack = newBufferPack;
+            //let buffer: Buffer = fs.readFileSync(`D:/data/electron cache/07/b4/07b41693-1bf6-4f29-b1a3-e4a1cdc5730b`);
+            let buffer: Buffer = fs.readFileSync(`D:/data/light sheet/0001.buf`);
+            let tempBufferPack = new BufferPack(0, 'temp');        
+            tempBufferPack.setArrayBuffer(buffer.buffer);
+            this.currentBufferPack = tempBufferPack;
             this.transferBuffers(this.currentBufferPack);
+            //this.currentBufferPack.printDeepString();
         }
+
+        // if (newBufferPack)
+        // {
+        //     this.currentBufferPack = newBufferPack;
+        //     this.transferBuffers(this.currentBufferPack);
+        // }
 
         this.drawCount++;
         
-        console.log(`Buffer pack ${this.currentBufferPack.toString()}`);
-        this.currentBufferPack.printDeepString();
+        console.log(`draw count: ${this.drawCount} (${from})`);
         
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
@@ -183,9 +198,9 @@ export class GLContext
         // let mPerspective: glm.mat4 = glm.mat4.create();
         const mPerspective = glm.mat4.perspective(glm.mat4.create(), 45, this.width / this.height, 10, 3000.0);
 
+        console.log(`context: ${JSON.stringify(this.glMatrix.getWorldTransform(),null,3)}`);
         this.setMatrixUniforms(mPerspective, this.glMatrix.getWorldTransform()); //<-- Set uniforms here.
-
-
+        this.transferBuffers(this.currentBufferPack);
 
         //TODO buffer attributes should not be set every draw call!!
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayBufferId);

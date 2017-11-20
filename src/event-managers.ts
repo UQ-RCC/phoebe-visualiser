@@ -43,7 +43,8 @@ class PerspectiveDrag
 
     public setClickVector(x: number, y: number): void
     {
-        this.perspectiveClick = new glm.vec2([x, y]);
+        this.perspectiveClick = glm.vec2.fromValues(x, y);
+        
     }
 
     public getIncDrag(x: number, y: number): glm.vec3
@@ -168,7 +169,7 @@ export class MouseManager
 {
 
     canvas: HTMLCanvasElement;
-    lsData: GLMatrix;
+    glMatrix: GLMatrix;
     arcBall: ArcBall;
     perspectiveDrag: PerspectiveDrag;
     glContext: GLContext;
@@ -179,7 +180,7 @@ export class MouseManager
     
     constructor(canvas: HTMLCanvasElement, glContext: GLContext, glMatrix: GLMatrix)
     {
-        this.lsData = glMatrix;
+        this.glMatrix = glMatrix;
         this.canvas = canvas;        
         this.xOffset = this.canvas.offsetLeft;
         this.yOffset = this.canvas.offsetTop;        
@@ -222,11 +223,11 @@ export class MouseManager
                 let drag: glm.vec3 = this.perspectiveDrag.getIncDrag(x, y);
                 if (this.shiftDown)
                 {
-                    this.lsData.incRotation(rot);
+                    this.glMatrix.incRotation(rot);
                 }
                 else
                 {
-                    this.lsData.incTranslationXY(drag);
+                    this.glMatrix.incTranslationXY(drag);
                 }
                 this.glContext.drawScene("MouseManager::onmousemove");
             }
@@ -245,7 +246,8 @@ export class MouseManager
 
         canvas.onwheel = (e: WheelEvent) =>
         {
-            this.lsData.incTranslationZ(new glm.vec3([0, 0, e.wheelDelta]));
+            this.glMatrix.incTranslationZ(glm.vec3.fromValues(0, 0, e.wheelDelta));
+            console.log(`mouse: ${JSON.stringify(this.glMatrix.getWorldTransform(),null,3)}`);     
             this.glContext.drawScene("MouseManager::onwheel");
         }
         
@@ -426,6 +428,11 @@ export class TimeBar {
                 console.log(`frame ${this.currentValue} : ${this.defaultSegmentation.frames[this.currentValue].bufferState} : ${this.defaultSegmentation.frames[this.currentValue].filename}`);
                 let bufferPack: BufferPack = new BufferPack(this.currentValue, this.defaultSegmentation.frames[this.currentValue].filename);
                 bufferPack.loadBufferPack();                
+                
+                //let bufferPack: BufferPack = new BufferPack(this.currentValue, "");
+                //let buffer: Buffer = fs.readFileSync(`D:/data/light sheet/0001.buf`);
+                //bufferPack.setArrayBuffer(buffer.buffer);
+
                 let glContext: GLContext = new GLContext(bufferPack);
             }
         }

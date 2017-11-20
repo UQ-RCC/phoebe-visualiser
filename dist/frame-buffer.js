@@ -66,11 +66,11 @@ class BufferPack {
         debug.byteArray = ute.numTo(this.arrayBuffer.byteLength);
         debug.indices = [];
         for (let i = 0; i < 30; i++) {
-            debug.indices.push(ute.numTo(iView.getInt32(i)));
+            debug.indices.push(ute.numTo(iView.getInt32(i * 4, true)));
         }
         debug.points = [];
         for (let i = 0; i < 27; i++) {
-            debug.points.push(pView.getFloat32(i));
+            debug.points.push(pView.getFloat32(i * 4, true));
         }
         console.log(`${JSON.stringify(debug, null, 3)}`);
     }
