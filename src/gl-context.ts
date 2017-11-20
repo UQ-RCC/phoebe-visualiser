@@ -23,13 +23,6 @@ export class GLMatrix
 
         console.log(`Initialize GLMatrix`);
 
-        //let buffer: Buffer = fs.readFileSync(`D:/data/electron cache/07/b4/07b41693-1bf6-4f29-b1a3-e4a1cdc5730b`);
-        let buffer: Buffer = fs.readFileSync(`D:/data/light sheet/0001.buf`);
-        let tempBufferPack = new BufferPack(0, 'temp');        
-        tempBufferPack.setArrayBuffer(buffer.buffer);
-        bufferPack = tempBufferPack;
-        
-        // this.qCurrentRot = glm.quat.identity.clone();
         glm.quat.identity(this.qCurrentRot);
 
         this.modelRadius = Math.max(bufferPack.xMag, bufferPack.yMag, bufferPack.zMag) / 2.0;
