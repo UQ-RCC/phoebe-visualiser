@@ -34,7 +34,6 @@ class GLMatrix {
         this.vTranslateXY = glm.vec3.fromValues(0, 0, 0);
     }
     incRotation(qNewRotation) {
-        //this.qCurrentRot = qNewRotation.multiply(this.qCurrentRot);
         glm.quat.multiply(this.qCurrentRot, this.qCurrentRot, qNewRotation);
         console.log(`rotating...`);
     }
@@ -50,13 +49,9 @@ class GLMatrix {
     }
     getWorldTransform() {
         const mWorldT = glm.mat4.create();
-        //mWorldT.translate(this.vTranslateZ);
         glm.mat4.translate(mWorldT, mWorldT, this.vTranslateZ);
-        //mWorldT.translate(this.vTranslateXY);
         glm.mat4.translate(mWorldT, mWorldT, this.vTranslateXY);
-        //mWorldT.multiply(this.qCurrentRot.toMat4());        
         glm.mat4.multiply(mWorldT, mWorldT, glm.mat4.fromQuat(glm.mat4.create(), this.qCurrentRot));
-        //mWorldT.translate(this.vCentreT);
         glm.mat4.translate(mWorldT, mWorldT, this.vCentreT);
         return mWorldT;
     }

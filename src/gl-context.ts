@@ -54,8 +54,7 @@ export class GLMatrix
     }
 
     incRotation(qNewRotation: glm.quat): void
-    {
-        //this.qCurrentRot = qNewRotation.multiply(this.qCurrentRot);
+    {        
         glm.quat.multiply(this.qCurrentRot, this.qCurrentRot, qNewRotation);
         console.log(`rotating...`);
     }
@@ -78,14 +77,10 @@ export class GLMatrix
 
     getWorldTransform(): glm.mat4
     {
-        const mWorldT = glm.mat4.create();
-        //mWorldT.translate(this.vTranslateZ);
+        const mWorldT = glm.mat4.create();        
         glm.mat4.translate(mWorldT, mWorldT, this.vTranslateZ);        
-        //mWorldT.translate(this.vTranslateXY);
-        glm.mat4.translate(mWorldT, mWorldT, this.vTranslateXY);
-        //mWorldT.multiply(this.qCurrentRot.toMat4());        
-        glm.mat4.multiply(mWorldT, mWorldT, glm.mat4.fromQuat(glm.mat4.create(), this.qCurrentRot));
-        //mWorldT.translate(this.vCentreT);
+        glm.mat4.translate(mWorldT, mWorldT, this.vTranslateXY);        
+        glm.mat4.multiply(mWorldT, mWorldT, glm.mat4.fromQuat(glm.mat4.create(), this.qCurrentRot));        
         glm.mat4.translate(mWorldT, mWorldT, this.vCentreT);
         return mWorldT;
     }
