@@ -5,6 +5,7 @@ import { log } from 'util';
 import { TimeBar } from './event-managers';
 import { cachePath } from './renderer';
 import { DBIO } from './database';
+import { SegmentationUI } from './renderer';
 import * as ute from './utilities';
 
 export const enum GlobalStatus
@@ -49,7 +50,7 @@ export interface SegmentationRecord
     value: number;
 }
 
-//Used for OpenGL context
+//Used int OpenGL context
 export class BufferPack
 {
     
@@ -107,8 +108,6 @@ export class BufferPack
         this.arrayBuffer = this.arrayBuffer.slice(56, 56 + (4 * this.numPoints * 3 * 2));
 
         this.state = BufferState.loaded;
-        console.log(`buffer: ${this.toString()}`);
-
     }
 
     getSize(): number {
@@ -274,6 +273,7 @@ export class Segmentation
     private active: boolean = false; // active in timeBar
     currentFrame: number = 0;
     cachePath: string;
+    segmentationUI: SegmentationUI;
     
     constructor(channel: Channel, segmentationRecord: SegmentationRecord)    
     {
@@ -301,6 +301,11 @@ export class Segmentation
 
     }
 
+    attachUI(ui: SegmentationUI)
+    {
+        this.segmentationUI = ui;
+    }
+
     private addFrames(): void
     {        
         DBIO.getInstance().queryByObject('get_seg_status', this.id.toString())
@@ -313,7 +318,6 @@ export class Segmentation
         });
     }
 
-    // Active in timebar should be determined in timebar attached.
     setActive(active: boolean)
     {
         this.active = active;        
@@ -340,7 +344,7 @@ export class Segmentation
                 frame.bufferState = BufferState.loaded;
             }                    
         }
-        timeIt = performance.now() - timeIt;        
+        timeIt = performance.now() - timeIt;   
     }
     
     setCurrentFrame(frame: number)
@@ -355,7 +359,7 @@ export class Segmentation
         for (let i = this.currentFrame; i < this.frames.length; i++)
         {
             let frame = this.frames[i];
-            if (frame.bufferState === BufferState.empty)
+            if ((frame.bufferState === BufferState.empty) && (frame.status == "complete"))
             {
                 frame.bufferState = BufferState.loading;
                 return frame;
@@ -364,7 +368,7 @@ export class Segmentation
         for (let i = this.currentFrame - 1; i >= 0; i--)
         {
             let frame = this.frames[i];
-            if (frame.bufferState === BufferState.empty)
+            if ((frame.bufferState === BufferState.empty) && (frame.status == "complete"))
             {
                 frame.bufferState = BufferState.loading;
                 return frame;
@@ -465,7 +469,11 @@ class XHRLoader
             {
                 this.frame.bufferState = BufferState.loaded;                
                 fs.writeFileSync(this.xhrPool.cachePath + "/" + this.frame.filename, Buffer.from(inBuffer));
-                //this.frame.segmentation.refreshTimeBar();
+                let ui: SegmentationUI = this.frame.segmentation.segmentationUI;
+                if (ui)
+                {
+                    ui.fireChange();
+                }                                
             }
             this.xhrPool.returnLoader(this);
         }
@@ -498,6 +506,7 @@ class XHRPool
 
     addSegmentation(request: Segmentation): void
     {
+        console.log(`load queue add: ${request.id}`);
         // add segmentation to front of queue
         // (moves it to front if already in queue and not already in front).
         const i = this.requestQueue.indexOf(request);

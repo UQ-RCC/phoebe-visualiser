@@ -190,6 +190,7 @@ class TimeKeep {
     }
 }
 class TimeBar {
+    //private readonly glContext: GLContext = GLContext.getInstance();
     constructor() {
         this.frameCount = 0;
         this.segmentationRecords = []; // This needs to be a set
@@ -220,7 +221,10 @@ class TimeBar {
     activateSegmentation(segmentation) {
         this.segmentationRecords.push(segmentation);
         this.defaultSegmentation = segmentation;
+        this.currentValue = segmentation.currentFrame;
+        this.displayFrame(this.currentValue);
         this.setFrameCount(segmentation.channel.experiment.frames);
+        this.resize();
     }
     deactivateSegmentation(segmentation) {
         this.defaultSegmentation = null;
@@ -229,6 +233,7 @@ class TimeBar {
         if (i > -1) {
             this.segmentationRecords.splice(i, 1);
         }
+        gl_context_1.GLContext.getInstance().clear();
         this.resize();
     }
     reset() {
@@ -260,14 +265,7 @@ class TimeBar {
                 // process selected frame on timebar move
                 $("#frame-status").text(this.defaultSegmentation.frames[this.currentValue].status);
                 this.defaultSegmentation.setCurrentFrame(this.currentValue);
-                console.log(`frame ${this.currentValue} : ${this.defaultSegmentation.frames[this.currentValue].bufferState} : ${this.defaultSegmentation.frames[this.currentValue].filename}`);
-                let bufferPack = new frame_buffer_1.BufferPack(this.currentValue, this.defaultSegmentation.frames[this.currentValue].filename);
-                bufferPack.loadBufferPack();
-                //let bufferPack: BufferPack = new BufferPack(this.currentValue, "");
-                //let buffer: Buffer = fs.readFileSync(`D:/data/light sheet/0001.buf`);
-                //bufferPack.setArrayBuffer(buffer.buffer);
-                let glContext = gl_context_1.GLContext.getInstance();
-                glContext.setBufferPack(bufferPack);
+                this.displayFrame(this.currentValue);
             }
         }
         this.draw();
@@ -276,6 +274,12 @@ class TimeBar {
         if (this.mouseDown) {
             this.mouseClick(e);
         }
+    }
+    displayFrame(frameNumber) {
+        //TODO check buffer states first....
+        let bufferPack = new frame_buffer_1.BufferPack(this.currentValue, this.defaultSegmentation.frames[this.currentValue].filename);
+        bufferPack.loadBufferPack();
+        gl_context_1.GLContext.getInstance().setBufferPack(bufferPack);
     }
     resize() {
         this.canvas.width = this.canvas.clientWidth;

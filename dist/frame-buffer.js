@@ -4,7 +4,7 @@ const fs = require("fs");
 const renderer_1 = require("./renderer");
 const database_1 = require("./database");
 const ute = require("./utilities");
-//Used for OpenGL context
+//Used int OpenGL context
 class BufferPack {
     constructor(frameNumber, fileName) {
         this.numPoints = 0;
@@ -38,7 +38,6 @@ class BufferPack {
         this.indexBuffer = this.arrayBuffer.slice(startIndices);
         this.arrayBuffer = this.arrayBuffer.slice(56, 56 + (4 * this.numPoints * 3 * 2));
         this.state = "loaded" /* loaded */;
-        console.log(`buffer: ${this.toString()}`);
     }
     getSize() {
         if (!this.arrayBuffer) {
@@ -159,6 +158,9 @@ class Segmentation {
             this.addFrames();
         }
     }
+    attachUI(ui) {
+        this.segmentationUI = ui;
+    }
     addFrames() {
         database_1.DBIO.getInstance().queryByObject('get_seg_status', this.id.toString())
             .then(res => {
@@ -167,7 +169,6 @@ class Segmentation {
             });
         });
     }
-    // Active in timebar should be determined in timebar attached.
     setActive(active) {
         this.active = active;
         if (active) {
@@ -197,14 +198,14 @@ class Segmentation {
     getNextFrame() {
         for (let i = this.currentFrame; i < this.frames.length; i++) {
             let frame = this.frames[i];
-            if (frame.bufferState === "empty" /* empty */) {
+            if ((frame.bufferState === "empty" /* empty */) && (frame.status == "complete")) {
                 frame.bufferState = "loading" /* loading */;
                 return frame;
             }
         }
         for (let i = this.currentFrame - 1; i >= 0; i--) {
             let frame = this.frames[i];
-            if (frame.bufferState === "empty" /* empty */) {
+            if ((frame.bufferState === "empty" /* empty */) && (frame.status == "complete")) {
                 frame.bufferState = "loading" /* loading */;
                 return frame;
             }
@@ -267,7 +268,10 @@ class XHRLoader {
             if (inBuffer) {
                 this.frame.bufferState = "loaded" /* loaded */;
                 fs.writeFileSync(this.xhrPool.cachePath + "/" + this.frame.filename, Buffer.from(inBuffer));
-                //this.frame.segmentation.refreshTimeBar();
+                let ui = this.frame.segmentation.segmentationUI;
+                if (ui) {
+                    ui.fireChange();
+                }
             }
             this.xhrPool.returnLoader(this);
         };
@@ -289,6 +293,7 @@ class XHRPool {
         }
     }
     addSegmentation(request) {
+        console.log(`load queue add: ${request.id}`);
         // add segmentation to front of queue
         // (moves it to front if already in queue and not already in front).
         const i = this.requestQueue.indexOf(request);

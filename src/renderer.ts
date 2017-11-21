@@ -90,8 +90,7 @@ function popTree(): void
     });
 }
 
-
-class SegmentationUI
+export class SegmentationUI
 {
 
     //DOM elements
@@ -131,7 +130,7 @@ class SegmentationUI
             this.channelUI.segmentationActivated(this.segmentation, true);
         }
         else
-        {            
+        {
             this.segSpan.removeClass("segmentation-properties-on");
             this.segmentation.setActive(false);
             this.channelUI.segmentationActivated(this.segmentation, false);
@@ -141,6 +140,19 @@ class SegmentationUI
     getSegmentationDiv(): JQuery
     {
         return this.segSpan;
+    }
+
+    getSegmentation(): Segmentation
+    {
+        return this.segmentation;
+    }
+
+    fireChange(): void
+    {
+        if (this.active)
+        {
+            this.channelUI.getSetController().getDefaultTimeBar().resize();
+        }
     }
 
 }
@@ -200,6 +212,11 @@ class ChannelUI
 
     }
 
+    getSetController(): SetController
+    {
+        return this.setController;
+    }
+
     getChannelDiv(): JQuery
     {
         return this.channelDiv;
@@ -218,11 +235,11 @@ class ChannelUI
         this.segValuesSpan.append(s.getSegmentationDiv());
     }
 
-    deactivateOther(s: SegmentationUI)
+    deactivateOther(s: Segmentation)
     {
         this.segmentationUI.forEach(sl =>
         {
-            if (s !== sl)
+            if (s !== sl.getSegmentation())
             {
                 sl.setActive(false);
             }
@@ -231,6 +248,10 @@ class ChannelUI
 
     segmentationActivated(s: Segmentation, a: boolean)
     {
+        if (a)
+        {
+            this.deactivateOther(s);
+        }
         this.setController.segmentationActivated(s, a);
     }
 }
@@ -272,12 +293,15 @@ class SetController
             this.channelUIs.push(channelUI);
             channelListDiv.append(channelUI.getChannelDiv());
         });
+
+        GLContext.getInstance().clear();
+
     }
 
     segmentationActivated(s: Segmentation, a: boolean)
     {
         if (a)
-        {
+        {            
             this.defaultTimeBar.activateSegmentation(s);
         }
         else

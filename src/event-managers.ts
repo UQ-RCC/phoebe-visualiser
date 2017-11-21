@@ -328,6 +328,8 @@ export class TimeBar {
     private canvas: HTMLCanvasElement;    
     private segmentationRecords: Segmentation[] = []; // This needs to be a set
     private defaultSegmentation: Segmentation | null;
+
+
     
     readonly context: CanvasRenderingContext2D;    
     private normalisedValue: number = 0.0;
@@ -343,6 +345,8 @@ export class TimeBar {
     private colorEmpty: string;
     private colorLoaded: string;
     private colourLookup: ColourLookup = new ColourLookup();
+
+    //private readonly glContext: GLContext = GLContext.getInstance();
     
     constructor()
     {
@@ -364,7 +368,6 @@ export class TimeBar {
         let barDiv: JQuery = $("<div>").addClass("time-bar-div");
         barDiv.append(this.canvas);
         dynamicDiv.append(barDiv);
-
         
     }
 
@@ -375,11 +378,14 @@ export class TimeBar {
         this.resize();
     }
 
-    activateSegmentation(segmentation: Segmentation): void
-    {         
+    activateSegmentation(segmentation: Segmentation): void    
+    {        
         this.segmentationRecords.push(segmentation);
         this.defaultSegmentation = segmentation;
+        this.currentValue = segmentation.currentFrame;
+        this.displayFrame(this.currentValue);
         this.setFrameCount(segmentation.channel.experiment.frames);
+        this.resize();
     }
 
     deactivateSegmentation(segmentation: Segmentation): void
@@ -391,6 +397,7 @@ export class TimeBar {
         {
             this.segmentationRecords.splice(i, 1);
         }
+        GLContext.getInstance().clear();
         this.resize();
     }
 
@@ -430,18 +437,7 @@ export class TimeBar {
                 // process selected frame on timebar move
                 $("#frame-status").text(this.defaultSegmentation.frames[this.currentValue].status);
                 this.defaultSegmentation.setCurrentFrame(this.currentValue);
-                console.log(`frame ${this.currentValue} : ${this.defaultSegmentation.frames[this.currentValue].bufferState} : ${this.defaultSegmentation.frames[this.currentValue].filename}`);
-                let bufferPack: BufferPack = new BufferPack(this.currentValue, this.defaultSegmentation.frames[this.currentValue].filename);
-                bufferPack.loadBufferPack();                
-                
-                //let bufferPack: BufferPack = new BufferPack(this.currentValue, "");
-                //let buffer: Buffer = fs.readFileSync(`D:/data/light sheet/0001.buf`);
-                //bufferPack.setArrayBuffer(buffer.buffer);
-
-                let glContext: GLContext = GLContext.getInstance();
-                glContext.setBufferPack(bufferPack);
-
-
+                this.displayFrame(this.currentValue);
             }
         }
         this.draw();
@@ -452,6 +448,15 @@ export class TimeBar {
             this.mouseClick(e);
 
         }
+    }
+
+    private displayFrame(frameNumber: number)
+    {
+        //TODO check buffer states first....
+
+        let bufferPack: BufferPack = new BufferPack(this.currentValue, this.defaultSegmentation.frames[this.currentValue].filename);
+        bufferPack.loadBufferPack();
+        GLContext.getInstance().setBufferPack(bufferPack);
     }
 
     resize() {
@@ -493,6 +498,7 @@ export class TimeBar {
             const status: string = this.defaultSegmentation.frames[i].status;
             const bufferState: BufferState = this.defaultSegmentation.frames[i].bufferState;                
             let colour: string = "#e0e0d1";
+
             switch (status)
             {		
                 case 'queued': {

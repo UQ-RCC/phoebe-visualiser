@@ -94,7 +94,16 @@ class SegmentationUI {
     getSegmentationDiv() {
         return this.segSpan;
     }
+    getSegmentation() {
+        return this.segmentation;
+    }
+    fireChange() {
+        if (this.active) {
+            this.channelUI.getSetController().getDefaultTimeBar().resize();
+        }
+    }
 }
+exports.SegmentationUI = SegmentationUI;
 class ChannelUI {
     constructor(c, sc) {
         // DOM elements
@@ -134,6 +143,9 @@ class ChannelUI {
             this.addSegmentation(s);
         });
     }
+    getSetController() {
+        return this.setController;
+    }
     getChannelDiv() {
         return this.channelDiv;
     }
@@ -148,12 +160,15 @@ class ChannelUI {
     }
     deactivateOther(s) {
         this.segmentationUI.forEach(sl => {
-            if (s !== sl) {
+            if (s !== sl.getSegmentation()) {
                 sl.setActive(false);
             }
         });
     }
     segmentationActivated(s, a) {
+        if (a) {
+            this.deactivateOther(s);
+        }
         this.setController.segmentationActivated(s, a);
     }
 }
@@ -181,6 +196,7 @@ class SetController {
             this.channelUIs.push(channelUI);
             channelListDiv.append(channelUI.getChannelDiv());
         });
+        gl_context_1.GLContext.getInstance().clear();
     }
     segmentationActivated(s, a) {
         if (a) {
