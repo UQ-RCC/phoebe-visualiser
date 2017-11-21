@@ -223,7 +223,7 @@ class FrameController {
         loadWindow(bufferPack, 10, this);
         if (bufferPack.state === "loaded" /* loaded */) {
             console.log(`pre draw scene`);
-            this.glContext.drawScene("FrameController::setFrame", bufferPack);
+            this.glContext.drawScene("FrameController::setFrame");
             console.log(`post draw scene`);
         }
         this.currentFrame = newFrame;
@@ -232,10 +232,10 @@ class FrameController {
         this.localCacheSize += bufferPack.getSize();
         // this.timeBar.draw();
         if (!this.glContext) {
-            this.glContext = new gl_context_1.GLContext(bufferPack);
+            this.glContext = gl_context_1.GLContext.getInstance();
         }
         if (this.currentFrame === bufferPack.frameNumber) {
-            this.glContext.drawScene("FrameController::fileLoaded", bufferPack); //TODO perhaps pass the buffer pack itself in
+            this.glContext.drawScene("FrameController::fileLoaded"); //TODO perhaps pass the buffer pack itself in
         }
     }
     getFileName(index) {

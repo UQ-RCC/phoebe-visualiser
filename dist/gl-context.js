@@ -1,12 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const event_managers_1 = require("./event-managers");
-const frame_buffer_1 = require("./frame-buffer");
 const glm = require("gl-matrix");
 const $ = require("jquery");
-const fs = require("fs");
 class GLMatrix {
-    constructor(bufferPack) {
+    constructor() {
         this.vCentreT = glm.vec3.create(); // Set when model loaded
         this.vTranslateXY = glm.vec3.create(); // Incremented by input control on xy
         this.vTranslateZ = glm.vec3.create(); // Incremented by input control on Z
@@ -15,16 +13,27 @@ class GLMatrix {
         this.mWorldT = glm.mat4.create();
         this.mCenterT = glm.mat4.create();
         console.log(`Initialize GLMatrix`);
+        // glm.quat.identity(this.qCurrentRot);
+        // this.modelRadius = Math.max(bufferPack.xMag, bufferPack.yMag, bufferPack.zMag) / 2.0;
+        // this.vCentreT = glm.vec3.fromValues(
+        //     (bufferPack.xMag / 2.0 + bufferPack.b[0]) * -1.0,
+        //     (bufferPack.yMag / 2.0 + bufferPack.b[2]) * -1.0,
+        //     (bufferPack.zMag / 2.0 + bufferPack.b[4]) * -1.0
+        // );
+        glm.mat4.perspective(this.mPerspectiveT, 20.0, 640 / 480, 100, 10000); // near far setting should be calculated
+        //this.mCenterT = glm.mat4.identity.copy();
+        //this.mCenterT = glm.mat4.create();
+        //this.mCenterT.translate(this.vCentreT);
+        // glm.mat4.translate(this.mCenterT, this.mCenterT, this.vCentreT);
+        // this.vTranslateZ = glm.vec3.fromValues(0, 0, -500);
+        // this.vTranslateXY = glm.vec3.fromValues(0, 0, 0);
+    }
+    initialise(bufferPack) {
         glm.quat.identity(this.qCurrentRot);
         this.modelRadius = Math.max(bufferPack.xMag, bufferPack.yMag, bufferPack.zMag) / 2.0;
         this.vCentreT = glm.vec3.fromValues((bufferPack.xMag / 2.0 + bufferPack.b[0]) * -1.0, (bufferPack.yMag / 2.0 + bufferPack.b[2]) * -1.0, (bufferPack.zMag / 2.0 + bufferPack.b[4]) * -1.0);
-        //this.mPerspectiveT = glm.mat4.perspective(20.0, 640 / 480, 100, 10000);  //TODO looks a bit suspect.
-        glm.mat4.perspective(this.mPerspectiveT, 20.0, 640 / 480, 100, 10000);
-        //this.mCenterT = glm.mat4.identity.copy();
-        this.mCenterT = glm.mat4.create();
-        //this.mCenterT.translate(this.vCentreT);
         glm.mat4.translate(this.mCenterT, this.mCenterT, this.vCentreT);
-        this.vTranslateZ = glm.vec3.fromValues(0, 0, 1000);
+        this.vTranslateZ = glm.vec3.fromValues(0, 0, -500);
         this.vTranslateXY = glm.vec3.fromValues(0, 0, 0);
     }
     incRotation(qNewRotation) {
@@ -52,15 +61,14 @@ class GLMatrix {
 }
 exports.GLMatrix = GLMatrix;
 class GLContext {
-    constructor(bufferPack) {
+    constructor() {
         // width and height of viewport and canvas drawing buffer;
         this.width = 0;
         this.height = 0;
         this.horizAspect = 1;
         this.drawCount = 0;
         this.canvas = $("#canvas").get(0);
-        this.currentBufferPack = bufferPack;
-        this.glMatrix = new GLMatrix(this.currentBufferPack); //TODO bad coding get init parameters from FrameController instead
+        this.glMatrix = new GLMatrix();
         this.gl = this.canvas.getContext("webgl") || this.canvas.getContext("experimental-webgl");
         if (!this.gl) {
             alert("Unable to initialize WebGL. Your browser may not support it.");
@@ -72,19 +80,34 @@ class GLContext {
             console.log("OES_element_index_uint is missing");
             return;
         }
-        //let ramConst: number = 0x9048;
-        //let totalNvidiaRam: number = this.gl.getParameter(ramConst);
-        //console.log(`video "${ramConst}" =  ${totalNvidiaRam}`);
         this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
         this.gl.enable(this.gl.DEPTH_TEST);
         this.gl.depthFunc(this.gl.LEQUAL);
         this.initBuffers();
         this.initShaders();
         this.resize();
-        const mm = new event_managers_1.MouseManager(this.canvas, this, this.glMatrix); //TODO sort out if better way of doing this. MM handle never used...
+        const mm = new event_managers_1.MouseManager(this.canvas, this, this.glMatrix);
         window.addEventListener("resize", () => { this.resize(); });
         //const timeKeeper: TimeKeep = new TimeKeep(xRange, this.drawScene, this.glMatrix);  // xRange is the slider
         //timeKeeper.start();
+    }
+    static getInstance() {
+        if (!this.singletonGlContext) {
+            this.singletonGlContext = new GLContext();
+        }
+        return this.singletonGlContext;
+    }
+    setBufferPack(bufferPack) {
+        //reinitialise if new bufferPack
+        if (!this.currentBufferPack) {
+            this.glMatrix.initialise(bufferPack);
+        }
+        this.currentBufferPack = bufferPack;
+        this.drawScene("GLContext::setBufferPack");
+    }
+    clear() {
+        this.currentBufferPack = null;
+        this.drawScene("GLContext::clear");
     }
     resize() {
         if ((this.width !== this.canvas.clientWidth) || (this.height !== this.canvas.clientHeight)) {
@@ -97,36 +120,22 @@ class GLContext {
             this.drawScene("GLContext::resize");
         }
     }
-    drawScene(from, newBufferPack) {
-        if (!this.currentBufferPack) {
-            //let buffer: Buffer = fs.readFileSync(`D:/data/electron cache/07/b4/07b41693-1bf6-4f29-b1a3-e4a1cdc5730b`);
-            let buffer = fs.readFileSync(`D:/data/light sheet/0001.buf`);
-            let tempBufferPack = new frame_buffer_1.BufferPack(0, 'temp');
-            tempBufferPack.setArrayBuffer(buffer.buffer);
-            this.currentBufferPack = tempBufferPack;
-            this.transferBuffers(this.currentBufferPack);
-            //this.currentBufferPack.printDeepString();
-        }
-        // if (newBufferPack)
-        // {
-        //     this.currentBufferPack = newBufferPack;
-        //     this.transferBuffers(this.currentBufferPack);
-        // }
+    drawScene(from) {
         this.drawCount++;
         console.log(`draw count: ${this.drawCount} (${from})`);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-        //const mPerspective: glm.mat4 = glm.mat4.perspective(45, this.width / this.height, 10, 3000.0); //TODO near far need to be set depending on scene.
-        // let mPerspective: glm.mat4 = glm.mat4.create();
-        const mPerspective = glm.mat4.perspective(glm.mat4.create(), 45, this.width / this.height, 10, 3000.0);
-        //console.log(`context: ${JSON.stringify(this.glMatrix.getWorldTransform(),null,3)}`);
-        this.setMatrixUniforms(mPerspective, this.glMatrix.getWorldTransform()); //<-- Set uniforms here.
-        this.transferBuffers(this.currentBufferPack);
-        //TODO buffer attributes should not be set every draw call!!
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayBufferId);
-        this.gl.vertexAttribPointer(this.vertexPositionAttribute, 3, this.gl.FLOAT, false, 0, 0);
-        this.gl.vertexAttribPointer(this.normalAttribute, 3, this.gl.FLOAT, false, 0, this.currentBufferPack.numPoints * 4 * 3);
-        this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.indexBufferId);
-        this.gl.drawElements(this.gl.TRIANGLES, this.currentBufferPack.numIndices, this.gl.UNSIGNED_INT, 0);
+        if (this.currentBufferPack) {
+            //TODO near far need to be set depending on scene--this is in the bufferpack as well check
+            const mPerspective = glm.mat4.perspective(glm.mat4.create(), 45, this.width / this.height, 10, 3000.0);
+            this.setMatrixUniforms(mPerspective, this.glMatrix.getWorldTransform()); //<-- Set uniforms here.
+            this.transferBuffers(this.currentBufferPack); // Call when new has been set.
+            //TODO buffer attributes should not be set every draw call!!
+            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayBufferId);
+            this.gl.vertexAttribPointer(this.vertexPositionAttribute, 3, this.gl.FLOAT, false, 0, 0);
+            this.gl.vertexAttribPointer(this.normalAttribute, 3, this.gl.FLOAT, false, 0, this.currentBufferPack.numPoints * 4 * 3);
+            this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.indexBufferId);
+            this.gl.drawElements(this.gl.TRIANGLES, this.currentBufferPack.numIndices, this.gl.UNSIGNED_INT, 0);
+        }
     }
     transferBuffers(lsData) {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayBufferId);

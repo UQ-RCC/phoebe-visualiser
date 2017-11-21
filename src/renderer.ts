@@ -327,7 +327,7 @@ export class FrameController
         if (bufferPack.state === BufferState.loaded)
         {
             console.log(`pre draw scene`);
-            this.glContext.drawScene("FrameController::setFrame", bufferPack);
+            this.glContext.drawScene("FrameController::setFrame");
             console.log(`post draw scene`);
         }
         this.currentFrame = newFrame;
@@ -338,11 +338,11 @@ export class FrameController
         // this.timeBar.draw();
         if (!this.glContext) //TODO fix this is a kludge
         {
-            this.glContext = new GLContext(bufferPack);
+            this.glContext = GLContext.getInstance();
         }
         if (this.currentFrame === bufferPack.frameNumber)
         {
-            this.glContext.drawScene("FrameController::fileLoaded", bufferPack); //TODO perhaps pass the buffer pack itself in
+            this.glContext.drawScene("FrameController::fileLoaded"); //TODO perhaps pass the buffer pack itself in
         }
     }
 

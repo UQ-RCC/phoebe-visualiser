@@ -266,7 +266,8 @@ class TimeBar {
                 //let bufferPack: BufferPack = new BufferPack(this.currentValue, "");
                 //let buffer: Buffer = fs.readFileSync(`D:/data/light sheet/0001.buf`);
                 //bufferPack.setArrayBuffer(buffer.buffer);
-                let glContext = new gl_context_1.GLContext(bufferPack);
+                let glContext = gl_context_1.GLContext.getInstance();
+                glContext.setBufferPack(bufferPack);
             }
         }
         this.draw();

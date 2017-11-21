@@ -438,7 +438,10 @@ export class TimeBar {
                 //let buffer: Buffer = fs.readFileSync(`D:/data/light sheet/0001.buf`);
                 //bufferPack.setArrayBuffer(buffer.buffer);
 
-                let glContext: GLContext = new GLContext(bufferPack);
+                let glContext: GLContext = GLContext.getInstance();
+                glContext.setBufferPack(bufferPack);
+
+
             }
         }
         this.draw();
