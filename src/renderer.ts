@@ -33,6 +33,7 @@ $(document).ready(() =>
     console.log(`Electron Version: ${process.versions.electron}`);
     popTree();
     navControl.createNavigator();
+    db.DBIO.getInstance().dbListen();
 });
 
 function popTree(): void
@@ -118,6 +119,7 @@ export class SegmentationUI
                 this.setActive(false);                
             }
         });
+        s.attachUI(this);
     }
     
     setActive(a: boolean)
@@ -147,11 +149,12 @@ export class SegmentationUI
         return this.segmentation;
     }
 
-    fireChange(): void
+    fireChange(frame?: Frame): void
     {
         if (this.active)
         {
             this.channelUI.getSetController().getDefaultTimeBar().resize();
+            this.channelUI.getSetController().getDefaultTimeBar().displayCurrentFrame();
         }
     }
 
@@ -224,15 +227,15 @@ class ChannelUI
 
     addSegmentation(s: Segmentation)
     {
-        console.log(`ChannelUI ${s.value}`);
+        console.log(`ChannelUI added segmentation ${s.value}`);
         let segUI: SegmentationUI = new SegmentationUI(s, this);        
         this.addSegmentationUI(segUI);
     }
 
-    addSegmentationUI(s: SegmentationUI): void
+    addSegmentationUI(ui: SegmentationUI): void
     {
-        this.segmentationUI.push(s);
-        this.segValuesSpan.append(s.getSegmentationDiv());
+        this.segmentationUI.push(ui);
+        this.segValuesSpan.append(ui.getSegmentationDiv());
     }
 
     deactivateOther(s: Segmentation)
@@ -280,13 +283,14 @@ class SetController
         //TODO clear up existing segmentations...
 
         this.defaultTimeBar.reset();
-        const experiment = this.frameBuffer.setActiveExperiment(record);
+        let experiment = this.frameBuffer.setActiveExperiment(record);
         this.frames = experiment.frames;        
         $("#frames").text(`${this.frames}`);
         let channels = experiment.channels;
         $(".channel").remove();        
         let channelListDiv: JQuery = $("#channel-info");
         
+        //TODO clean up old channelUIs (keeps growing).
         experiment.channels.forEach(channel => 
         {
             let channelUI: ChannelUI = new ChannelUI(channel, this);
@@ -294,6 +298,7 @@ class SetController
             channelListDiv.append(channelUI.getChannelDiv());
         });
 
+        GLContext.getInstance().reinitialiseGLMatrix();
         GLContext.getInstance().clear();
 
     }

@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const pg = require("pg");
-const ws = require("ws");
 const frame_buffer_1 = require("./frame-buffer");
 const WebSocket = require("ws");
 //Gateway to all RESTful database queries
@@ -150,16 +149,42 @@ class DBIO {
             });
         });
     }
+    dbListen() {
+        let conn = {
+            host: '203.101.226.113',
+            database: 'phoebe',
+            user: 'phoebeuser',
+            password: 'user',
+        };
+        let pgClient = new pg.Client(conn);
+        pgClient.connect((e) => {
+            if (e) {
+                console.log(`dbListen error connecting ${e}`);
+            }
+            else {
+                pgClient.query(`listen "proc_status"`, (e) => {
+                    if (e)
+                        console.log(`error listening to DB server\n${JSON.stringify(e, null, 3)}`);
+                });
+                console.log(`listening to dbserver`);
+                pgClient.on('notification', (message) => {
+                    // let msgObj: any = JSON.parse(message.payload);
+                    console.log(`${message.payload}`);
+                });
+            }
+        });
+    }
 }
 exports.DBIO = DBIO;
 //TODO this is not picking things up from the pool
 class SocketIO {
     constructor(httpServer) {
-        this.socketServer = new ws.Server({ server: httpServer });
-        this.socketMap = new Map();
-        this.socketServer.on('connection', (webSocket) => {
-            webSocket.on('message', (m) => this.onMessage(m, webSocket));
-        });
+        // this.socketServer = new ws.Server({ server: httpServer });
+        // this.socketMap = new Map<string, ws>();
+        // this.socketServer.on('connection', (webSocket: ws) =>
+        // {
+        // 	webSocket.on('message', (m: ws.Data) => this.onMessage(m, webSocket));
+        // });
         let conn = {
             host: '203.101.226.113',
             database: 'phoebe',

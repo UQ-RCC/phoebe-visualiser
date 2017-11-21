@@ -100,6 +100,7 @@ export class GLContext
 
     private readonly canvas: HTMLCanvasElement;
     private readonly glMatrix: GLMatrix;
+    private initGLMatrixInitialised;
     
     private readonly gl: WebGLRenderingContext;
     private arrayBufferId: WebGLBuffer;
@@ -129,6 +130,7 @@ export class GLContext
     {
         this.canvas = $("#canvas").get(0) as HTMLCanvasElement;
         this.glMatrix = new GLMatrix();
+        this.initGLMatrixInitialised = false;
 
         this.gl = this.canvas.getContext("webgl") || this.canvas.getContext("experimental-webgl");
         if (!this.gl)
@@ -159,20 +161,28 @@ export class GLContext
 
     }
 
-    setBufferPack(bufferPack: BufferPack): void
+    reinitialiseGLMatrix(): void
     {
-        //reinitialise if new bufferPack
-        if (!this.currentBufferPack)
-        {
-            this.glMatrix.initialise(bufferPack);
-        }
+        this.initGLMatrixInitialised = false;
+    }
+
+    setBufferPack(bufferPack: BufferPack): void
+    {        
         this.currentBufferPack = bufferPack;        
-        this.transferBuffers(this.currentBufferPack);
+        if (bufferPack)
+        {
+            if (!this.initGLMatrixInitialised)
+            {
+                this.glMatrix.initialise(bufferPack);
+                this.initGLMatrixInitialised = true;
+            }
+            this.transferBuffers(this.currentBufferPack);            
+        }        
         this.drawScene("GLContext::setBufferPack");
     }
 
     clear(): void
-    {
+    {        
         this.currentBufferPack = null;
         this.drawScene("GLContext::clear");
     }

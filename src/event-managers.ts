@@ -383,7 +383,7 @@ export class TimeBar {
         this.segmentationRecords.push(segmentation);
         this.defaultSegmentation = segmentation;
         this.currentValue = segmentation.currentFrame;
-        this.displayFrame(this.currentValue);
+        this.displayCurrentFrame();
         this.setFrameCount(segmentation.channel.experiment.frames);
         this.resize();
     }
@@ -437,7 +437,7 @@ export class TimeBar {
                 // process selected frame on timebar move
                 $("#frame-status").text(this.defaultSegmentation.frames[this.currentValue].status);
                 this.defaultSegmentation.setCurrentFrame(this.currentValue);
-                this.displayFrame(this.currentValue);
+                this.displayCurrentFrame();
             }
         }
         this.draw();
@@ -446,17 +446,24 @@ export class TimeBar {
     private mouseMove(e: MouseEvent) {
         if (this.mouseDown) {
             this.mouseClick(e);
-
         }
     }
 
-    private displayFrame(frameNumber: number)
+    displayCurrentFrame()
     {
-        //TODO check buffer states first....
-
-        let bufferPack: BufferPack = new BufferPack(this.currentValue, this.defaultSegmentation.frames[this.currentValue].filename);
-        bufferPack.loadBufferPack();
-        GLContext.getInstance().setBufferPack(bufferPack);
+        let frame: Frame = this.defaultSegmentation.frames[this.currentValue];
+        console.log(`checking frame: ${this.currentValue} : ${frame.bufferState}`);
+        if (frame.bufferState == BufferState.loaded)
+        {
+            let bufferPack: BufferPack = new BufferPack(this.currentValue, frame.filename);
+            bufferPack.loadBufferPack();
+            GLContext.getInstance().setBufferPack(bufferPack);
+        }
+        else
+        {
+            console.log(`skipping empty buffer: ${this.currentValue}`);
+            GLContext.getInstance().setBufferPack(null);
+        }
     }
 
     resize() {

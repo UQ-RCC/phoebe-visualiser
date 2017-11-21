@@ -320,31 +320,36 @@ export class Segmentation
 
     setActive(active: boolean)
     {
+        console.log(`segmentation ${this.id} : ${active}`);
+        this.checkFileBuffer();
         this.active = active;        
         if (active)
         {
+            //ping db to say this segmentation is active at the current frame.
             this.setCurrentFrame(this.currentFrame);
+            //TODO before adding to pool is there anything to download? Do some checks
+            this.channel.experiment.frameBuffer.xhrPool.addSegmentation(this);
         }
         else
         {
             DBIO.getInstance().queryByObject("deactivate_frame", this.id);
         }
-        this.channel.experiment.frameBuffer.xhrPool.addSegmentation(this);
-        this.checkFileBuffer();
     }
 
     checkFileBuffer()
-    {
-        let timeIt = performance.now()
+    {        
         for (let frame of this.frames)
         {   
             let cacheState: boolean = fs.existsSync(this.cachePath + "/" + frame.filename);            
             if (cacheState)
             {
                 frame.bufferState = BufferState.loaded;
-            }                    
-        }
-        timeIt = performance.now() - timeIt;   
+            }
+            else
+            {
+                frame.bufferState = BufferState.empty;
+            }
+        }     
     }
     
     setCurrentFrame(frame: number)
@@ -472,7 +477,7 @@ class XHRLoader
                 let ui: SegmentationUI = this.frame.segmentation.segmentationUI;
                 if (ui)
                 {
-                    ui.fireChange();
+                    ui.fireChange(this.frame);
                 }                                
             }
             this.xhrPool.returnLoader(this);

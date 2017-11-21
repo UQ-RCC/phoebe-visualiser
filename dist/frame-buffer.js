@@ -170,25 +170,29 @@ class Segmentation {
         });
     }
     setActive(active) {
+        console.log(`segmentation ${this.id} : ${active}`);
+        this.checkFileBuffer();
         this.active = active;
         if (active) {
+            //ping db to say this segmentation is active at the current frame.
             this.setCurrentFrame(this.currentFrame);
+            //TODO before adding to pool is there anything to download? Do some checks
+            this.channel.experiment.frameBuffer.xhrPool.addSegmentation(this);
         }
         else {
             database_1.DBIO.getInstance().queryByObject("deactivate_frame", this.id);
         }
-        this.channel.experiment.frameBuffer.xhrPool.addSegmentation(this);
-        this.checkFileBuffer();
     }
     checkFileBuffer() {
-        let timeIt = performance.now();
         for (let frame of this.frames) {
             let cacheState = fs.existsSync(this.cachePath + "/" + frame.filename);
             if (cacheState) {
                 frame.bufferState = "loaded" /* loaded */;
             }
+            else {
+                frame.bufferState = "empty" /* empty */;
+            }
         }
-        timeIt = performance.now() - timeIt;
     }
     setCurrentFrame(frame) {
         this.currentFrame = frame;
@@ -270,7 +274,7 @@ class XHRLoader {
                 fs.writeFileSync(this.xhrPool.cachePath + "/" + this.frame.filename, Buffer.from(inBuffer));
                 let ui = this.frame.segmentation.segmentationUI;
                 if (ui) {
-                    ui.fireChange();
+                    ui.fireChange(this.frame);
                 }
             }
             this.xhrPool.returnLoader(this);

@@ -17,6 +17,7 @@ $(document).ready(() => {
     console.log(`Electron Version: ${process.versions.electron}`);
     popTree();
     navControl.createNavigator();
+    db.DBIO.getInstance().dbListen();
 });
 function popTree() {
     dbIO.getTree(exports.cachePath).then(data => {
@@ -77,6 +78,7 @@ class SegmentationUI {
                 this.setActive(false);
             }
         });
+        s.attachUI(this);
     }
     setActive(a) {
         this.active = a;
@@ -97,9 +99,10 @@ class SegmentationUI {
     getSegmentation() {
         return this.segmentation;
     }
-    fireChange() {
+    fireChange(frame) {
         if (this.active) {
             this.channelUI.getSetController().getDefaultTimeBar().resize();
+            this.channelUI.getSetController().getDefaultTimeBar().displayCurrentFrame();
         }
     }
 }
@@ -150,13 +153,13 @@ class ChannelUI {
         return this.channelDiv;
     }
     addSegmentation(s) {
-        console.log(`ChannelUI ${s.value}`);
+        console.log(`ChannelUI added segmentation ${s.value}`);
         let segUI = new SegmentationUI(s, this);
         this.addSegmentationUI(segUI);
     }
-    addSegmentationUI(s) {
-        this.segmentationUI.push(s);
-        this.segValuesSpan.append(s.getSegmentationDiv());
+    addSegmentationUI(ui) {
+        this.segmentationUI.push(ui);
+        this.segValuesSpan.append(ui.getSegmentationDiv());
     }
     deactivateOther(s) {
         this.segmentationUI.forEach(sl => {
@@ -185,17 +188,19 @@ class SetController {
     setExperiment(record) {
         //TODO clear up existing segmentations...
         this.defaultTimeBar.reset();
-        const experiment = this.frameBuffer.setActiveExperiment(record);
+        let experiment = this.frameBuffer.setActiveExperiment(record);
         this.frames = experiment.frames;
         $("#frames").text(`${this.frames}`);
         let channels = experiment.channels;
         $(".channel").remove();
         let channelListDiv = $("#channel-info");
+        //TODO clean up old channelUIs (keeps growing).
         experiment.channels.forEach(channel => {
             let channelUI = new ChannelUI(channel, this);
             this.channelUIs.push(channelUI);
             channelListDiv.append(channelUI.getChannelDiv());
         });
+        gl_context_1.GLContext.getInstance().reinitialiseGLMatrix();
         gl_context_1.GLContext.getInstance().clear();
     }
     segmentationActivated(s, a) {

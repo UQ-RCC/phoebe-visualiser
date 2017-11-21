@@ -215,7 +215,41 @@ export class DBIO
 			});
 		});
 	}
+
+	dbListen()
+	{
+		let conn: pg.ClientConfig = {
+			host: '203.101.226.113',
+			database: 'phoebe',
+			user: 'phoebeuser',
+			password: 'user',			
+		}
+
+		let pgClient = new pg.Client(conn);
+		pgClient.connect((e: Error) =>
+		{
+			if (e)
+			{
+				console.log(`dbListen error connecting ${e}`);
+			}
+			else
+			{
+				pgClient.query(`listen "proc_status"`, (e: Error) =>
+				{
+					if (e) console.log(`error listening to DB server\n${JSON.stringify(e, null, 3)}`);
+				});
+				console.log(`listening to dbserver`);
+				pgClient.on('notification', (message: any) =>
+				{
+					// let msgObj: any = JSON.parse(message.payload);
+					console.log(`${message.payload}`);
+				});
+			}
+		});
+	}
 }
+
+
 
 //TODO this is not picking things up from the pool
 export class SocketIO
@@ -227,12 +261,12 @@ export class SocketIO
 
 	constructor(httpServer: http.Server)
 	{
-		this.socketServer = new ws.Server({ server: httpServer });
-		this.socketMap = new Map<string, ws>();
-		this.socketServer.on('connection', (webSocket: ws) =>
-		{
-			webSocket.on('message', (m: ws.Data) => this.onMessage(m, webSocket));
-		});
+		// this.socketServer = new ws.Server({ server: httpServer });
+		// this.socketMap = new Map<string, ws>();
+		// this.socketServer.on('connection', (webSocket: ws) =>
+		// {
+		// 	webSocket.on('message', (m: ws.Data) => this.onMessage(m, webSocket));
+		// });
 
 
 		let conn: pg.ClientConfig = {

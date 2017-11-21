@@ -222,7 +222,7 @@ class TimeBar {
         this.segmentationRecords.push(segmentation);
         this.defaultSegmentation = segmentation;
         this.currentValue = segmentation.currentFrame;
-        this.displayFrame(this.currentValue);
+        this.displayCurrentFrame();
         this.setFrameCount(segmentation.channel.experiment.frames);
         this.resize();
     }
@@ -265,7 +265,7 @@ class TimeBar {
                 // process selected frame on timebar move
                 $("#frame-status").text(this.defaultSegmentation.frames[this.currentValue].status);
                 this.defaultSegmentation.setCurrentFrame(this.currentValue);
-                this.displayFrame(this.currentValue);
+                this.displayCurrentFrame();
             }
         }
         this.draw();
@@ -275,11 +275,18 @@ class TimeBar {
             this.mouseClick(e);
         }
     }
-    displayFrame(frameNumber) {
-        //TODO check buffer states first....
-        let bufferPack = new frame_buffer_1.BufferPack(this.currentValue, this.defaultSegmentation.frames[this.currentValue].filename);
-        bufferPack.loadBufferPack();
-        gl_context_1.GLContext.getInstance().setBufferPack(bufferPack);
+    displayCurrentFrame() {
+        let frame = this.defaultSegmentation.frames[this.currentValue];
+        console.log(`checking frame: ${this.currentValue} : ${frame.bufferState}`);
+        if (frame.bufferState == "loaded" /* loaded */) {
+            let bufferPack = new frame_buffer_1.BufferPack(this.currentValue, frame.filename);
+            bufferPack.loadBufferPack();
+            gl_context_1.GLContext.getInstance().setBufferPack(bufferPack);
+        }
+        else {
+            console.log(`skipping empty buffer: ${this.currentValue}`);
+            gl_context_1.GLContext.getInstance().setBufferPack(null);
+        }
     }
     resize() {
         this.canvas.width = this.canvas.clientWidth;

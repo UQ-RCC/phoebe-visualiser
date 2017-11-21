@@ -69,6 +69,7 @@ class GLContext {
         this.drawCount = 0;
         this.canvas = $("#canvas").get(0);
         this.glMatrix = new GLMatrix();
+        this.initGLMatrixInitialised = false;
         this.gl = this.canvas.getContext("webgl") || this.canvas.getContext("experimental-webgl");
         if (!this.gl) {
             alert("Unable to initialize WebGL. Your browser may not support it.");
@@ -97,13 +98,18 @@ class GLContext {
         }
         return this.singletonGlContext;
     }
+    reinitialiseGLMatrix() {
+        this.initGLMatrixInitialised = false;
+    }
     setBufferPack(bufferPack) {
-        //reinitialise if new bufferPack
-        if (!this.currentBufferPack) {
-            this.glMatrix.initialise(bufferPack);
-        }
         this.currentBufferPack = bufferPack;
-        this.transferBuffers(this.currentBufferPack);
+        if (bufferPack) {
+            if (!this.initGLMatrixInitialised) {
+                this.glMatrix.initialise(bufferPack);
+                this.initGLMatrixInitialised = true;
+            }
+            this.transferBuffers(this.currentBufferPack);
+        }
         this.drawScene("GLContext::setBufferPack");
     }
     clear() {
