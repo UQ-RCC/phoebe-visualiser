@@ -170,7 +170,17 @@ body {
     width: 100%;
 }
 
-.time-bar-cached {    
+.time-bar-queued {    
+    /* color: rgb(136, 184, 120) */
+    color: rgb(243, 221, 25)
+}
+
+.time-bar-processing {    
+    /* color: rgb(136, 184, 120) */
+    color: rgb(252, 139, 10)
+}
+
+.time-bar-cached {
     /* color: rgb(136, 184, 120) */
     color: rgb(91, 161, 73)
 }

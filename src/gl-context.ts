@@ -62,7 +62,6 @@ export class GLMatrix
     incRotation(qNewRotation: glm.quat): void
     {        
         glm.quat.multiply(this.qCurrentRot, this.qCurrentRot, qNewRotation);
-        console.log(`rotating...`);
     }
 
     incTranslationXY(vNewTranslation: glm.vec3): void

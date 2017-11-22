@@ -38,7 +38,6 @@ class GLMatrix {
     }
     incRotation(qNewRotation) {
         glm.quat.multiply(this.qCurrentRot, this.qCurrentRot, qNewRotation);
-        console.log(`rotating...`);
     }
     incTranslationXY(vNewTranslation) {
         const modelCentre = this.vCentreT[2] + this.vTranslateZ[2]; //TODO what's this??        

@@ -135,7 +135,6 @@ class MouseManager {
         };
         canvas.onmousemove = (e) => {
             if (this.mouseDown) {
-                console.log(`${e.shiftKey}`);
                 e.preventDefault();
                 let x = e.pageX - this.xOffset;
                 let y = e.pageY - this.yOffset;
@@ -322,11 +321,11 @@ class TimeBar {
             let colour = "#e0e0d1";
             switch (status) {
                 case 'queued': {
-                    colour = "#6699ff";
+                    colour = this.colourLookup.getHexColour(".time-bar-queued");
                     break;
                 }
                 case 'processing': {
-                    colour = "#ff6600";
+                    colour = this.colourLookup.getHexColour(".time-bar-processing");
                     break;
                 }
                 case 'complete': {
@@ -371,6 +370,8 @@ class ColourLookup {
         cp.set(".time-bar-uncached", colorString.get.rgb("maroon"));
         cp.set(".time-bar-cached", colorString.get.rgb("dodgerblue"));
         cp.set(".time-bar-cursor", colorString.get.rgb("red"));
+        cp.set(".time-bar-processing", colorString.get.rgb("red"));
+        cp.set(".time-bar-queued", colorString.get.rgb("red"));
         return cp;
     }
     getStyleSheetProperties() {
