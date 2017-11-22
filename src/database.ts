@@ -3,6 +3,7 @@ import * as pg from "pg";
 import * as ws from "ws";
 import * as stream from "stream";
 import {FrameBuffer} from "./frame-buffer";
+import {SetController} from "./renderer"
 import * as jss from "json-stringify-safe";
 import { ConnectionOptions } from "tls";
 
@@ -216,7 +217,7 @@ export class DBIO
 		});
 	}
 
-	dbListen()
+	dbListen(setController: SetController)
 	{
 		let conn: pg.ClientConfig = {
 			host: '203.101.226.113',
@@ -241,8 +242,7 @@ export class DBIO
 				console.log(`listening to dbserver`);
 				pgClient.on('notification', (message: any) =>
 				{
-					// let msgObj: any = JSON.parse(message.payload);
-					console.log(`${message.payload}`);
+					setController.processDBMessage(message.payload);					
 				});
 			}
 		});

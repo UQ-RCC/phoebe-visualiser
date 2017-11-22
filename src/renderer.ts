@@ -10,6 +10,7 @@ import {
     BufferPack,
     BufferState,
     Channel,
+    Experiment,
     ExperimentRecord,
     Frame,
     FrameBuffer,
@@ -21,6 +22,7 @@ import {
 import * as $ from 'jquery';
 import * as path from 'path';
 import { log } from 'util';
+import { LOADIPHLPAPI } from 'dns';
 
 let ioPool = new ute.IOPool(5, ute.DummyGetter);
 let dbIO = db.DBIO.getInstance();
@@ -32,8 +34,7 @@ $(document).ready(() =>
 {    
     console.log(`Electron Version: ${process.versions.electron}`);
     popTree();
-    navControl.createNavigator();
-    db.DBIO.getInstance().dbListen();
+    navControl.createNavigator();    
 });
 
 function popTree(): void
@@ -259,17 +260,19 @@ class ChannelUI
     }
 }
 
-class SetController
+export class SetController
 {
     private frames: number;
     private readonly defaultTimeBar: TimeBar;
     private frameBuffer: FrameBuffer;
     private channelUIs: ChannelUI[] = [];
+    private currentExperiment: Experiment;
     
     constructor(frameBuffer: FrameBuffer)
     {
         this.defaultTimeBar = new TimeBar();
         this.frameBuffer = frameBuffer;
+        db.DBIO.getInstance().dbListen(this);
     }
 
     getDefaultTimeBar(): TimeBar
@@ -300,6 +303,7 @@ class SetController
 
         GLContext.getInstance().reinitialiseGLMatrix();
         GLContext.getInstance().clear();
+        this.currentExperiment = experiment;
 
     }
 
@@ -313,6 +317,15 @@ class SetController
         {
             this.defaultTimeBar.deactivateSegmentation(s);
         }
+    }
+
+    processDBMessage(message: any)
+    {
+        console.log(`SC ${message}`);
+        if (this.currentExperiment)
+        {
+            this.currentExperiment.processDBMessage(message);
+        }        
     }
 
 }

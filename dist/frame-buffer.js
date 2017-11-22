@@ -82,6 +82,7 @@ class Frame {
         this.msec = frameRecord.msec;
         this.filename = frameRecord.filename;
         this.status = frameRecord.status;
+        this.id = frameRecord.id;
     }
     getFilePath() {
         return this.filename;
@@ -140,7 +141,6 @@ class Segmentation {
     constructor(channel, segmentationRecord) {
         this.frames = [];
         this.active = false; // active in timeBar
-        this.currentFrame = 0;
         this.channel = channel;
         this.value = segmentationRecord.value;
         this.cachePath = channel.experiment.frameBuffer.cachePath;
@@ -175,7 +175,7 @@ class Segmentation {
         this.active = active;
         if (active) {
             //ping db to say this segmentation is active at the current frame.
-            this.setCurrentFrame(this.currentFrame);
+            this.setCurrentFrame(this.channel.getCurrentFrame());
             //TODO before adding to pool is there anything to download? Do some checks
             this.channel.experiment.frameBuffer.xhrPool.addSegmentation(this);
         }
@@ -195,19 +195,22 @@ class Segmentation {
         }
     }
     setCurrentFrame(frame) {
-        this.currentFrame = frame;
-        database_1.DBIO.getInstance().queryByObject("activate_frame", this.id, this.currentFrame);
+        this.channel.setCurrentFrame(frame);
+        database_1.DBIO.getInstance().queryByObject("activate_frame", this.id, frame);
+    }
+    getCurrentFrame() {
+        return this.channel.getCurrentFrame();
     }
     // Get the next frame to load
     getNextFrame() {
-        for (let i = this.currentFrame; i < this.frames.length; i++) {
+        for (let i = this.channel.getCurrentFrame(); i < this.frames.length; i++) {
             let frame = this.frames[i];
             if ((frame.bufferState === "empty" /* empty */) && (frame.status == "complete")) {
                 frame.bufferState = "loading" /* loading */;
                 return frame;
             }
         }
-        for (let i = this.currentFrame - 1; i >= 0; i--) {
+        for (let i = this.channel.getCurrentFrame() - 1; i >= 0; i--) {
             let frame = this.frames[i];
             if ((frame.bufferState === "empty" /* empty */) && (frame.status == "complete")) {
                 frame.bufferState = "loading" /* loading */;
@@ -216,6 +219,22 @@ class Segmentation {
         }
         return null;
     }
+    processDBMessage(message) {
+        let frameID = message.segmentation_frame_id;
+        this.frames.forEach(f => {
+            if (f.id == frameID) {
+                console.log(`F ${f.id} set to ${message.status}`);
+                f.status = message.status;
+                f.bufferState = "empty" /* empty */;
+                if (this.segmentationUI) {
+                    this.segmentationUI.fireChange(f);
+                    if (this.active) {
+                        this.channel.experiment.frameBuffer.xhrPool.addSegmentation(this);
+                    }
+                }
+            }
+        });
+    }
     toString() {
         return JSON.stringify({ value: this.value, frames: this.frames.length }, null, 3);
     }
@@ -223,6 +242,7 @@ class Segmentation {
 exports.Segmentation = Segmentation;
 class Channel {
     constructor(experiment, channelRecord) {
+        this.currentFrame = 0;
         this.segmentation = [];
         this.experiment = experiment;
         this.id = channelRecord.id;
@@ -234,6 +254,12 @@ class Channel {
             });
         }
     }
+    setCurrentFrame(f) {
+        this.currentFrame = f;
+    }
+    getCurrentFrame() {
+        return this.currentFrame;
+    }
     addNewSegmentation(segmentationRecord) {
         let segmentation = new Segmentation(this, segmentationRecord);
         this.segmentation.push(segmentation);
@@ -243,6 +269,15 @@ class Channel {
         this.segmentation.forEach(sl => {
             if (s != sl) {
                 sl.setActive(false);
+            }
+        });
+    }
+    processDBMessage(message) {
+        let segmentationID = message.segmentation_id;
+        console.log(`C ${segmentationID}`);
+        this.segmentation.forEach(s => {
+            if (s.id == segmentationID) {
+                s.processDBMessage(message);
             }
         });
     }
@@ -259,6 +294,16 @@ class Experiment {
                 this.channels.push(new Channel(this, c));
             });
         }
+    }
+    processDBMessage(message) {
+        let messageObj = JSON.parse(message);
+        let channelId = messageObj.channel_id;
+        console.log(`E ${message} : ${channelId}`);
+        this.channels.forEach(c => {
+            if (c.id == channelId) {
+                c.processDBMessage(messageObj);
+            }
+        });
     }
 }
 exports.Experiment = Experiment;

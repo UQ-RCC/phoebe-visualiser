@@ -221,7 +221,7 @@ class TimeBar {
     activateSegmentation(segmentation) {
         this.segmentationRecords.push(segmentation);
         this.defaultSegmentation = segmentation;
-        this.currentValue = segmentation.currentFrame;
+        this.currentValue = segmentation.channel.getCurrentFrame();
         this.displayCurrentFrame();
         this.setFrameCount(segmentation.channel.experiment.frames);
         this.resize();
@@ -276,6 +276,7 @@ class TimeBar {
         }
     }
     displayCurrentFrame() {
+        console.log(`getting frame ${this.currentValue}`);
         let frame = this.defaultSegmentation.frames[this.currentValue];
         console.log(`checking frame: ${this.currentValue} : ${frame.bufferState}`);
         if (frame.bufferState == "loaded" /* loaded */) {
@@ -284,7 +285,6 @@ class TimeBar {
             gl_context_1.GLContext.getInstance().setBufferPack(bufferPack);
         }
         else {
-            console.log(`skipping empty buffer: ${this.currentValue}`);
             gl_context_1.GLContext.getInstance().setBufferPack(null);
         }
     }
@@ -334,14 +334,16 @@ class TimeBar {
                     break;
                 }
             }
-            switch (bufferState) {
-                case "empty" /* empty */: {
-                    colour = this.colourLookup.getHexColour(".time-bar-uncached");
-                    break;
-                }
-                case "loaded" /* loaded */: {
-                    colour = this.colourLookup.getHexColour(".time-bar-cached");
-                    break;
+            if (status == 'complete') {
+                switch (bufferState) {
+                    case "empty" /* empty */: {
+                        colour = this.colourLookup.getHexColour(".time-bar-uncached");
+                        break;
+                    }
+                    case "loaded" /* loaded */: {
+                        colour = this.colourLookup.getHexColour(".time-bar-cached");
+                        break;
+                    }
                 }
             }
             const x = (i * this.railFrameWidth) + this.railMin;

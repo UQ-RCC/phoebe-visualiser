@@ -149,7 +149,7 @@ class DBIO {
             });
         });
     }
-    dbListen() {
+    dbListen(setController) {
         let conn = {
             host: '203.101.226.113',
             database: 'phoebe',
@@ -168,8 +168,7 @@ class DBIO {
                 });
                 console.log(`listening to dbserver`);
                 pgClient.on('notification', (message) => {
-                    // let msgObj: any = JSON.parse(message.payload);
-                    console.log(`${message.payload}`);
+                    setController.processDBMessage(message.payload);
                 });
             }
         });

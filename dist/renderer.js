@@ -17,7 +17,6 @@ $(document).ready(() => {
     console.log(`Electron Version: ${process.versions.electron}`);
     popTree();
     navControl.createNavigator();
-    db.DBIO.getInstance().dbListen();
 });
 function popTree() {
     dbIO.getTree(exports.cachePath).then(data => {
@@ -180,6 +179,7 @@ class SetController {
         this.channelUIs = [];
         this.defaultTimeBar = new event_managers_1.TimeBar();
         this.frameBuffer = frameBuffer;
+        db.DBIO.getInstance().dbListen(this);
     }
     getDefaultTimeBar() {
         return this.defaultTimeBar;
@@ -202,6 +202,7 @@ class SetController {
         });
         gl_context_1.GLContext.getInstance().reinitialiseGLMatrix();
         gl_context_1.GLContext.getInstance().clear();
+        this.currentExperiment = experiment;
     }
     segmentationActivated(s, a) {
         if (a) {
@@ -211,7 +212,14 @@ class SetController {
             this.defaultTimeBar.deactivateSegmentation(s);
         }
     }
+    processDBMessage(message) {
+        console.log(`SC ${message}`);
+        if (this.currentExperiment) {
+            this.currentExperiment.processDBMessage(message);
+        }
+    }
 }
+exports.SetController = SetController;
 class FrameController {
     constructor(directory, fileNames) {
         this.currentFrame = 0;

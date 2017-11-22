@@ -7,6 +7,7 @@ import { cachePath } from './renderer';
 import { DBIO } from './database';
 import { SegmentationUI } from './renderer';
 import * as ute from './utilities';
+import { CLIENT_RENEG_LIMIT } from 'tls';
 
 export const enum GlobalStatus
 {
@@ -26,7 +27,8 @@ export interface FrameRecord
 {
     msec: number;
 	filename: string;
-	status: string;
+    status: string;
+    id: number;
 }
 
 export interface ExperimentRecord
@@ -167,6 +169,7 @@ export class Frame
     filename: string;    
     status: string;    
     msec: number;
+    id: number;
     
 	buffer: string; // Is this a buffer status??
 	// bufferPack: BufferPack;
@@ -178,7 +181,7 @@ export class Frame
         this.msec = frameRecord.msec;
         this.filename = frameRecord.filename;
         this.status = frameRecord.status;
-        
+        this.id = frameRecord.id;
 	}
 
 	getFilePath(): string
@@ -271,7 +274,7 @@ export class Segmentation
     value: number;
     frames: Frame[] = [];
     private active: boolean = false; // active in timeBar
-    currentFrame: number = 0;
+    //currentFrame: number = 0;
     cachePath: string;
     segmentationUI: SegmentationUI;
     
@@ -326,7 +329,7 @@ export class Segmentation
         if (active)
         {
             //ping db to say this segmentation is active at the current frame.
-            this.setCurrentFrame(this.currentFrame);
+            this.setCurrentFrame(this.channel.getCurrentFrame());
             //TODO before adding to pool is there anything to download? Do some checks
             this.channel.experiment.frameBuffer.xhrPool.addSegmentation(this);
         }
@@ -354,14 +357,19 @@ export class Segmentation
     
     setCurrentFrame(frame: number)
     {
-        this.currentFrame = frame;
-        DBIO.getInstance().queryByObject("activate_frame", this.id, this.currentFrame);
+        this.channel.setCurrentFrame(frame);
+        DBIO.getInstance().queryByObject("activate_frame", this.id, frame);
+    }
+
+    getCurrentFrame() : number
+    {
+        return this.channel.getCurrentFrame();
     }
 
     // Get the next frame to load
     getNextFrame(): Frame | null
     {
-        for (let i = this.currentFrame; i < this.frames.length; i++)
+        for (let i = this.channel.getCurrentFrame(); i < this.frames.length; i++)
         {
             let frame = this.frames[i];
             if ((frame.bufferState === BufferState.empty) && (frame.status == "complete"))
@@ -370,7 +378,7 @@ export class Segmentation
                 return frame;
             }
         }
-        for (let i = this.currentFrame - 1; i >= 0; i--)
+        for (let i = this.channel.getCurrentFrame() - 1; i >= 0; i--)
         {
             let frame = this.frames[i];
             if ((frame.bufferState === BufferState.empty) && (frame.status == "complete"))
@@ -380,6 +388,28 @@ export class Segmentation
             }
         }
         return null;
+    }
+
+    processDBMessage(message: any)
+    {
+        let frameID = message.segmentation_frame_id;
+        this.frames.forEach(f =>            
+        {            
+            if (f.id == frameID)
+            {
+                console.log(`F ${f.id} set to ${message.status}`);
+                f.status = message.status;
+                f.bufferState = BufferState.empty;
+                if (this.segmentationUI)
+                {
+                    this.segmentationUI.fireChange(f);
+                    if (this.active)
+                    {
+                        this.channel.experiment.frameBuffer.xhrPool.addSegmentation(this);
+                    }
+                }
+            }
+        })
     }
 
     toString(): string
@@ -396,6 +426,7 @@ export class Channel
     name: string;
     channelNumber: number;
     segmentation: Segmentation[];
+    private currentFrame: number = 0;
 
     constructor(experiment: Experiment, channelRecord: ChannelRecord)
     {        
@@ -413,6 +444,16 @@ export class Channel
         }
     }
 
+    public setCurrentFrame(f: number)
+    {
+        this.currentFrame = f;
+    }
+
+    public getCurrentFrame(): number
+    {
+        return this.currentFrame;
+    }
+
     public addNewSegmentation(segmentationRecord: SegmentationRecord): Segmentation
     {
         let segmentation = new Segmentation(this, segmentationRecord)
@@ -422,12 +463,26 @@ export class Channel
 
     public deactivateOthers(s: Segmentation)
     {
-        this.segmentation.forEach(sl => {
+        this.segmentation.forEach(sl =>
+        {
             if (s != sl)
             {
                 sl.setActive(false);
             }
-        })
+        });
+    }
+
+    processDBMessage(message: any)
+    {
+        let segmentationID = message.segmentation_id;
+        console.log(`C ${segmentationID}`);
+        this.segmentation.forEach(s =>
+        {            
+            if (s.id == segmentationID)
+            {         
+                s.processDBMessage(message);
+            }
+        });
     }
 
 }
@@ -452,6 +507,20 @@ export class Experiment
                 this.channels.push(new Channel(this, c));           
             });
         }
+    }
+
+    processDBMessage(message: any)
+    {
+        let messageObj: any = JSON.parse(message);
+        let channelId = messageObj.channel_id;
+        console.log(`E ${message} : ${channelId}`);
+        this.channels.forEach(c =>
+        {
+            if (c.id == channelId)
+            {                
+                c.processDBMessage(messageObj);
+            }
+        })
     }
 
 }
