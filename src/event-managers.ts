@@ -197,7 +197,7 @@ export class MouseManager
             let y = e.pageY - this.yOffset;
             this.mouseDown = true;            
             this.arcBall.setClickVector(x, y);
-            this.perspectiveDrag.setClickVector(x, y);            
+            this.perspectiveDrag.setClickVector(x, y);
             return false;
         }
 
@@ -236,20 +236,17 @@ export class MouseManager
 
         canvas.onkeydown = (e: KeyboardEvent) =>
         {
-            this.shiftDown = true;
-            console.log(`shift down`);
+            this.shiftDown = true;            
         }
 
         canvas.onkeyup = (e: KeyboardEvent) =>
         {
             this.shiftDown = false;
-            console.log(`shift up`);
         }
 
         canvas.onwheel = (e: WheelEvent) =>
         {
             this.glMatrix.incTranslationZ(glm.vec3.fromValues(0, 0, e.wheelDelta));
-            console.log(`mouse: ${JSON.stringify(this.glMatrix.getWorldTransform(),null,3)}`);     
             this.glContext.drawScene("MouseManager::onwheel");
         }
         
@@ -448,9 +445,7 @@ export class TimeBar {
 
     displayCurrentFrame()
     {
-        console.log(`getting frame ${this.currentValue}`);
-        let frame: Frame = this.defaultSegmentation.frames[this.currentValue];
-        console.log(`checking frame: ${this.currentValue} : ${frame.bufferState}`);
+        let frame: Frame = this.defaultSegmentation.frames[this.currentValue];     
         if (frame.bufferState == BufferState.loaded)
         {
             let bufferPack: BufferPack = new BufferPack(this.currentValue, frame.filename);

@@ -166,7 +166,6 @@ class DBIO {
                     if (e)
                         console.log(`error listening to DB server\n${JSON.stringify(e, null, 3)}`);
                 });
-                console.log(`listening to dbserver`);
                 pgClient.on('notification', (message) => {
                     setController.processDBMessage(message.payload);
                 });

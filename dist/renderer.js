@@ -152,7 +152,6 @@ class ChannelUI {
         return this.channelDiv;
     }
     addSegmentation(s) {
-        console.log(`ChannelUI added segmentation ${s.value}`);
         let segUI = new SegmentationUI(s, this);
         this.addSegmentationUI(segUI);
     }

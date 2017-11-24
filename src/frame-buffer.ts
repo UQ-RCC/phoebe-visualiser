@@ -297,7 +297,6 @@ export class Segmentation
         }
         else
         {
-            console.log(`loading seg data...`);
             this.id = segmentationRecord.id
             this.addFrames();
         }
@@ -323,7 +322,6 @@ export class Segmentation
 
     setActive(active: boolean)
     {
-        console.log(`segmentation ${this.id} : ${active}`);
         this.checkFileBuffer();
         this.active = active;        
         if (active)
@@ -538,6 +536,7 @@ class XHRLoader
         this.req.responseType = "arraybuffer";
         this.req.onload = () =>
         {
+            console.log(`Status ${this.req.status}`);            
             let inBuffer: ArrayBuffer = this.req.response;
             if (inBuffer)
             {
@@ -580,7 +579,6 @@ class XHRPool
 
     addSegmentation(request: Segmentation): void
     {
-        console.log(`load queue add: ${request.id}`);
         // add segmentation to front of queue
         // (moves it to front if already in queue and not already in front).
         const i = this.requestQueue.indexOf(request);

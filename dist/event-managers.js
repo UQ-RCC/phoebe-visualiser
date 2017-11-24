@@ -152,15 +152,12 @@ class MouseManager {
         };
         canvas.onkeydown = (e) => {
             this.shiftDown = true;
-            console.log(`shift down`);
         };
         canvas.onkeyup = (e) => {
             this.shiftDown = false;
-            console.log(`shift up`);
         };
         canvas.onwheel = (e) => {
             this.glMatrix.incTranslationZ(glm.vec3.fromValues(0, 0, e.wheelDelta));
-            console.log(`mouse: ${JSON.stringify(this.glMatrix.getWorldTransform(), null, 3)}`);
             this.glContext.drawScene("MouseManager::onwheel");
         };
     }
@@ -275,9 +272,7 @@ class TimeBar {
         }
     }
     displayCurrentFrame() {
-        console.log(`getting frame ${this.currentValue}`);
         let frame = this.defaultSegmentation.frames[this.currentValue];
-        console.log(`checking frame: ${this.currentValue} : ${frame.bufferState}`);
         if (frame.bufferState == "loaded" /* loaded */) {
             let bufferPack = new frame_buffer_1.BufferPack(this.currentValue, frame.filename);
             bufferPack.loadBufferPack();

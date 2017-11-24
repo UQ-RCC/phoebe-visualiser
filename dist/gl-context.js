@@ -12,21 +12,7 @@ class GLMatrix {
         this.mPerspectiveT = glm.mat4.create();
         this.mWorldT = glm.mat4.create();
         this.mCenterT = glm.mat4.create();
-        console.log(`Initialize GLMatrix`);
-        // glm.quat.identity(this.qCurrentRot);
-        // this.modelRadius = Math.max(bufferPack.xMag, bufferPack.yMag, bufferPack.zMag) / 2.0;
-        // this.vCentreT = glm.vec3.fromValues(
-        //     (bufferPack.xMag / 2.0 + bufferPack.b[0]) * -1.0,
-        //     (bufferPack.yMag / 2.0 + bufferPack.b[2]) * -1.0,
-        //     (bufferPack.zMag / 2.0 + bufferPack.b[4]) * -1.0
-        // );
         glm.mat4.perspective(this.mPerspectiveT, 20.0, 640 / 480, 100, 10000); // near far setting should be calculated
-        //this.mCenterT = glm.mat4.identity.copy();
-        //this.mCenterT = glm.mat4.create();
-        //this.mCenterT.translate(this.vCentreT);
-        // glm.mat4.translate(this.mCenterT, this.mCenterT, this.vCentreT);
-        // this.vTranslateZ = glm.vec3.fromValues(0, 0, -500);
-        // this.vTranslateXY = glm.vec3.fromValues(0, 0, 0);
     }
     initialise(bufferPack) {
         glm.quat.identity(this.qCurrentRot);

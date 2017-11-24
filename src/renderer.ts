@@ -228,7 +228,6 @@ class ChannelUI
 
     addSegmentation(s: Segmentation)
     {
-        console.log(`ChannelUI added segmentation ${s.value}`);
         let segUI: SegmentationUI = new SegmentationUI(s, this);        
         this.addSegmentationUI(segUI);
     }
