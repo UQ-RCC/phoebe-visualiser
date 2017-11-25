@@ -3,6 +3,25 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const event_managers_1 = require("./event-managers");
 const glm = require("gl-matrix");
 const $ = require("jquery");
+const gl_matrix_1 = require("gl-matrix");
+class LightVector {
+    constructor() {
+        this.vLight = glm.vec3.fromValues(0, 0, 1);
+        this.qCurrentRot = glm.quat.create();
+        this.reset();
+    }
+    reset() {
+        this.vLight = glm.vec3.fromValues(0, 0, 1);
+        this.qCurrentRot = glm.quat.create();
+    }
+    incRotation(qNewRotation) {
+        glm.quat.multiply(this.qCurrentRot, this.qCurrentRot, qNewRotation);
+    }
+    getLightVector() {
+        return glm.vec3.transformQuat(gl_matrix_1.vec3.create(), this.vLight, this.qCurrentRot);
+    }
+}
+exports.LightVector = LightVector;
 class GLMatrix {
     constructor() {
         this.vCentreT = glm.vec3.create(); // Set when model loaded
@@ -54,6 +73,7 @@ class GLContext {
         this.drawCount = 0;
         this.canvas = $("#canvas").get(0);
         this.glMatrix = new GLMatrix();
+        this.lightVector = new LightVector();
         this.initGLMatrixInitialised = false;
         this.gl = this.canvas.getContext("webgl") || this.canvas.getContext("experimental-webgl");
         if (!this.gl) {
@@ -72,7 +92,7 @@ class GLContext {
         this.initBuffers();
         this.initShaders();
         this.resize();
-        const mm = new event_managers_1.MouseManager(this.canvas, this, this.glMatrix);
+        const mm = new event_managers_1.MouseManager(this.canvas, this, this.glMatrix, this.lightVector);
         window.addEventListener("resize", () => { this.resize(); });
         //const timeKeeper: TimeKeep = new TimeKeep(xRange, this.drawScene, this.glMatrix);  // xRange is the slider
         //timeKeeper.start();
@@ -88,6 +108,7 @@ class GLContext {
     }
     resetScene() {
         this.initGLMatrixInitialised = false;
+        this.lightVector.reset();
         this.setBufferPack(this.currentBufferPack);
     }
     setBufferPack(bufferPack) {
@@ -122,7 +143,7 @@ class GLContext {
         if (this.currentBufferPack) {
             //TODO near far need to be set depending on scene--this is in the bufferpack as well check
             const mPerspective = glm.mat4.perspective(glm.mat4.create(), 45, this.width / this.height, 10, 3000.0);
-            this.setMatrixUniforms(mPerspective, this.glMatrix.getWorldTransform()); //<-- Set uniforms here.            
+            this.setMatrixUniforms(mPerspective, this.glMatrix.getWorldTransform(), this.lightVector.getLightVector()); //<-- Set uniforms here.
             this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayBufferId);
             this.gl.vertexAttribPointer(this.vertexPositionAttribute, 3, this.gl.FLOAT, false, 0, 0);
             this.gl.vertexAttribPointer(this.normalAttribute, 3, this.gl.FLOAT, false, 0, this.currentBufferPack.numPoints * 4 * 3);
@@ -189,13 +210,13 @@ class GLContext {
         }
         return shader;
     }
-    setMatrixUniforms(perspectiveMatrix, mvMatrix) {
+    setMatrixUniforms(perspectiveMatrix, mvMatrix, lightVector) {
         const pUniform = this.gl.getUniformLocation(this.shaderProgram, "uPMatrix");
-        //this.gl.uniformMatrix4fv(pUniform, false, new Float32Array(perspectiveMatrix.all()));
         this.gl.uniformMatrix4fv(pUniform, false, new Float32Array(perspectiveMatrix));
         const mvUniform = this.gl.getUniformLocation(this.shaderProgram, "uMVMatrix");
-        //this.gl.uniformMatrix4fv(mvUniform, false, new Float32Array(mvMatrix.all()));
         this.gl.uniformMatrix4fv(mvUniform, false, new Float32Array(mvMatrix));
+        const vlUniform = this.gl.getUniformLocation(this.shaderProgram, "uVLight");
+        this.gl.uniform3fv(vlUniform, new Float32Array(lightVector));
     }
 }
 exports.GLContext = GLContext;

@@ -160,4 +160,8 @@ class IOPool {
     }
 }
 exports.IOPool = IOPool;
+function prettyVec3(v) {
+    return `[${numeral(v[0]).format('0.000')}, ${numeral(v[1]).format('0.000')}, ${numeral(v[2]).format('0.000')}]`;
+}
+exports.prettyVec3 = prettyVec3;
 //# sourceMappingURL=utilities.js.map

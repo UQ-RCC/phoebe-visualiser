@@ -1,6 +1,8 @@
 ﻿import * as os from 'os';
 import * as numeral from 'numeral';
 import * as request from 'request';
+import * as glm from 'gl-matrix';
+import { StringifyOptions } from 'querystring';
 
 // Parse object and convert numeric properties to formatted MB strings
 export function numToMB(o: any): Object
@@ -229,4 +231,9 @@ export class IOPool
 			}
 		}
 	}
+}
+
+export function prettyVec3(v: glm.vec3): string
+{	
+	return `[${numeral(v[0]).format('0.000')}, ${numeral(v[1]).format('0.000')}, ${numeral(v[2]).format('0.000')}]`;
 }

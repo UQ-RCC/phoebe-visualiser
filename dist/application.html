@@ -20,6 +20,7 @@
 
     uniform mat4 uMVMatrix;
     uniform mat4 uPMatrix;
+    uniform vec3 uVLight;
 
     void main(void)
     {
@@ -34,12 +35,15 @@
 
     uniform mat4 uPMatrix;
     uniform mat4 uMVMatrix;
+    uniform vec3 uVLight;
 
     float getDiffuse()
     {
-        //vec3 normal = normalize(mat3(uMVMatrix) * mat3(uPMatrix) * vNormal);
+        //apply projection translform
+        //vec3 normal = normalize(mat3(uMVMatrix) * mat3(uPMatrix) * vNormal);        
         vec3 normal = normalize(mat3(uMVMatrix) * vNormal);
-        float diffuseCoefficient = max(0.0, dot(normal, vec3(0.0, 0.0, 1.0)));
+        //float diffuseCoefficient = max(0.0, dot(normal, vec3(0.0, 0.0, 1.0)));
+        float diffuseCoefficient = max(0.0, dot(normal, uVLight));
         return diffuseCoefficient;
     }
     
@@ -78,8 +82,8 @@
     </div>
 </div>
 
-<div id="process" class="ap-closed">
-    
+<div id="process" class="ap-closed">    
+    <div>lvec:<span id="debug-lvec"></div>
     <div>mouse:<span id="debug-mouse"></div>
     <div>canvas:<span id="debug-canvas"></span></div>
     

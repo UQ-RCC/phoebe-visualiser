@@ -4,6 +4,35 @@ import { BufferState, BufferPack} from "./frame-buffer";
 import * as glm from "gl-matrix";
 import * as $ from "jquery";
 import * as fs from "fs";
+import { vec3 } from "gl-matrix";
+
+export class LightVector
+{
+    vLight: glm.vec3 = glm.vec3.fromValues(0,0,1);
+    qCurrentRot: glm.quat = glm.quat.create();
+
+    constructor()
+    {
+        this.reset();
+    }
+
+    public reset(): void
+    {
+        this.vLight = glm.vec3.fromValues(0,0,1);
+        this.qCurrentRot = glm.quat.create();
+    }
+
+    public incRotation(qNewRotation: glm.quat): void
+    {
+        glm.quat.multiply(this.qCurrentRot, this.qCurrentRot, qNewRotation);
+    }
+
+    public getLightVector(): glm.vec3
+    {        
+        return glm.vec3.transformQuat(vec3.create(), this.vLight, this.qCurrentRot);        
+    }
+
+}
 
 export class GLMatrix
 {
@@ -64,7 +93,7 @@ export class GLMatrix
         const mWorldT = glm.mat4.create();        
         glm.mat4.translate(mWorldT, mWorldT, this.vTranslateZ);        
         glm.mat4.translate(mWorldT, mWorldT, this.vTranslateXY);        
-        glm.mat4.multiply(mWorldT, mWorldT, glm.mat4.fromQuat(glm.mat4.create(), this.qCurrentRot));        
+        glm.mat4.multiply(mWorldT, mWorldT, glm.mat4.fromQuat(glm.mat4.create(), this.qCurrentRot));
         glm.mat4.translate(mWorldT, mWorldT, this.vCentreT);
         return mWorldT;
     }
@@ -78,6 +107,8 @@ export class GLContext
 
     private readonly canvas: HTMLCanvasElement;
     private readonly glMatrix: GLMatrix;
+    private readonly lightVector: LightVector;
+
     private initGLMatrixInitialised;
     
     private readonly gl: WebGLRenderingContext;
@@ -108,6 +139,7 @@ export class GLContext
     {
         this.canvas = $("#canvas").get(0) as HTMLCanvasElement;
         this.glMatrix = new GLMatrix();
+        this.lightVector = new LightVector();
         this.initGLMatrixInitialised = false;
 
         this.gl = this.canvas.getContext("webgl") || this.canvas.getContext("experimental-webgl");
@@ -131,7 +163,7 @@ export class GLContext
         this.initBuffers();
         this.initShaders();
         this.resize();
-        const mm: MouseManager = new MouseManager(this.canvas, this, this.glMatrix);
+        const mm: MouseManager = new MouseManager(this.canvas, this, this.glMatrix, this.lightVector);
         window.addEventListener("resize", () => { this.resize(); });
 
         //const timeKeeper: TimeKeep = new TimeKeep(xRange, this.drawScene, this.glMatrix);  // xRange is the slider
@@ -147,6 +179,7 @@ export class GLContext
     resetScene(): void
     {
         this.initGLMatrixInitialised = false;
+        this.lightVector.reset();
         this.setBufferPack(this.currentBufferPack);
     }
 
@@ -175,7 +208,7 @@ export class GLContext
     {
         if ((this.width !== this.canvas.clientWidth) || (this.height !== this.canvas.clientHeight))
         {
-            
+
             this.width = this.canvas.clientWidth;
             this.height = this.canvas.clientHeight;
             this.horizAspect = this.height / this.width;
@@ -197,7 +230,7 @@ export class GLContext
             //TODO near far need to be set depending on scene--this is in the bufferpack as well check
             const mPerspective = glm.mat4.perspective(glm.mat4.create(), 45, this.width / this.height, 10, 3000.0);
             
-            this.setMatrixUniforms(mPerspective, this.glMatrix.getWorldTransform()); //<-- Set uniforms here.            
+            this.setMatrixUniforms(mPerspective, this.glMatrix.getWorldTransform(), this.lightVector.getLightVector()); //<-- Set uniforms here.
             
             this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayBufferId);
             this.gl.vertexAttribPointer(this.vertexPositionAttribute, 3, this.gl.FLOAT, false, 0, 0);
@@ -290,15 +323,16 @@ export class GLContext
 
     }
 
-    private setMatrixUniforms(perspectiveMatrix: glm.mat4, mvMatrix: glm.mat4): void
+    private setMatrixUniforms(perspectiveMatrix: glm.mat4, mvMatrix: glm.mat4, lightVector: glm.vec3): void
     {
-        const pUniform = this.gl.getUniformLocation(this.shaderProgram, "uPMatrix");
-        //this.gl.uniformMatrix4fv(pUniform, false, new Float32Array(perspectiveMatrix.all()));
+        const pUniform = this.gl.getUniformLocation(this.shaderProgram, "uPMatrix");        
         this.gl.uniformMatrix4fv(pUniform, false, new Float32Array(perspectiveMatrix));
 
-        const mvUniform = this.gl.getUniformLocation(this.shaderProgram, "uMVMatrix");
-        //this.gl.uniformMatrix4fv(mvUniform, false, new Float32Array(mvMatrix.all()));
+        const mvUniform = this.gl.getUniformLocation(this.shaderProgram, "uMVMatrix");        
         this.gl.uniformMatrix4fv(mvUniform, false, new Float32Array(mvMatrix));
+
+        const vlUniform = this.gl.getUniformLocation(this.shaderProgram, "uVLight");
+        this.gl.uniform3fv(vlUniform, new Float32Array(lightVector));
     }
 
 }

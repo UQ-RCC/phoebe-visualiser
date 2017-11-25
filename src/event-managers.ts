@@ -5,8 +5,9 @@ import * as glm from 'gl-matrix';
 
 import { cachePath, FrameController } from './renderer';
 import { log } from "util";
-import { GLMatrix, GLContext } from "./gl-context";
+import { GLMatrix, GLContext, LightVector } from "./gl-context";
 import { Frame, BufferState, GlobalStatus, BufferPack, Segmentation } from "./frame-buffer"
+import * as ute from "./utilities";
 import * as colorString from 'color-string';
 import * as $ from 'jquery';
 
@@ -48,10 +49,8 @@ class PerspectiveDrag
     }
 
     public getIncDrag(x: number, y: number): glm.vec3
-    {
-        //let perspectiveDrag = new glm.vec3([x - this.perspectiveClick.x, -(y - this.perspectiveClick.y), 0]);
-        let perspectiveDrag = glm.vec3.fromValues(x - this.perspectiveClick[0], -(y - this.perspectiveClick[1]), 0);
-        //this.perspectiveClick.xy = [x, y];
+    {        
+        let perspectiveDrag = glm.vec3.fromValues(x - this.perspectiveClick[0], -(y - this.perspectiveClick[1]), 0);     
         glm.vec2.set(this.perspectiveClick, x, y);
         return perspectiveDrag;
     }
@@ -99,35 +98,25 @@ class ArcBall
 
     public setClickVector(x: number, y: number): void
     {        
-        let centreClick = glm.vec2.fromValues(x, y);
-        //centreClick.subtract(this.centre);
+        let centreClick = glm.vec2.fromValues(x, y);        
         glm.vec2.subtract(centreClick, centreClick, this.centre);
         this.sphereClick = this.mapToSphere(centreClick);        
     }
 
     public getIncDragRotation(x: number, y: number): glm.quat
     {
-        let centreDrag = glm.vec2.fromValues(x, y);
-        //centreDrag.subtract(this.centre);
+        let centreDrag = glm.vec2.fromValues(x, y);        
         glm.vec2.subtract(centreDrag, centreDrag, this.centre);
         this.sphereDrag = this.mapToSphere(centreDrag);
         
-        // if (this.sphereClick.equals(this.sphereDrag))
-        // {            
-        //     return glm.quat.identity.copy();            
-        // }
-
         if (glm.vec3.equals(this.sphereClick, this.sphereDrag))
         {
             return glm.quat.create();
         }
 
-        let angle: number = this.angle(this.sphereClick, this.sphereDrag);        
-        //this.axis = glm.vec3.cross(this.sphereClick, this.sphereDrag);
-        glm.vec3.cross(this.axis, this.sphereClick, this.sphereDrag);
-        //this.axis.normalize();
-        glm.vec3.normalize(this.axis, this.axis);
-        //let rotation: glm.quat = glm.quat.fromAxis(this.axis, angle);        
+        let angle: number = this.angle(this.sphereClick, this.sphereDrag);                
+        glm.vec3.cross(this.axis, this.sphereClick, this.sphereDrag);        
+        glm.vec3.normalize(this.axis, this.axis);        
         let rotation = glm.quat.setAxisAngle(glm.quat.create(), this.axis, angle);
         this.sphereClick = glm.vec3.clone(this.sphereDrag);
         return rotation;
@@ -138,14 +127,12 @@ class ArcBall
         let sphereVector: glm.vec3 = glm.vec3.create();
         sphereVector[0] = screenVector[0];
         sphereVector[1] = -screenVector[1];
-        sphereVector[2] = 0.0;
-        //let l: number = screenVector.squaredLength();
+        sphereVector[2] = 0.0;        
         let l: number = glm.vec2.squaredLength(screenVector);
         if (l < this.radiusSquared)
         {
             sphereVector[2] = Math.sqrt(this.radiusSquared - l);
-        }
-        //sphereVector.normalize();
+        }        
         glm.vec3.normalize(sphereVector, sphereVector);
         return sphereVector;
     }
@@ -159,10 +146,8 @@ class ArcBall
     }
 
     private angleCos(v1: glm.vec3, v2: glm.vec3): number
-    {
-        //let l1: number = v1.length();
-        let l1: number = glm.vec3.length(v1);
-        //let l2: number = v2.length();
+    {        
+        let l1: number = glm.vec3.length(v1);     
         let l2: number = glm.vec3.length(v2);
         let d: number = glm.vec3.dot(v1, v2);
         d = v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
@@ -171,27 +156,33 @@ class ArcBall
     
 }
 
-
-
 export class MouseManager
 {
 
     canvas: HTMLCanvasElement;
     glMatrix: GLMatrix;
+    lightVector: LightVector;
     arcBall: ArcBall;
+    lightBall: ArcBall;
     perspectiveDrag: PerspectiveDrag;
     glContext: GLContext;    
     mouseDown: Boolean;
-    shiftDown: Boolean;
+    lightControl: Boolean;
+
         
-    constructor(canvas: HTMLCanvasElement, glContext: GLContext, glMatrix: GLMatrix)
+    constructor(canvas: HTMLCanvasElement, glContext: GLContext, glMatrix: GLMatrix, lightVec: LightVector)
     {
         this.glMatrix = glMatrix;
+        this.lightVector = lightVec;
         this.canvas = canvas;        
         this.mouseDown = false;
+        this.lightControl = false;
         this.arcBall = new ArcBall(canvas.width, canvas.height);
+        this.lightBall = new ArcBall(canvas.width, canvas.height);
         this.perspectiveDrag = new PerspectiveDrag(canvas.width, canvas.height);
         this.glContext = glContext;
+
+        $("#debug-lvec").text(ute.prettyVec3(this.lightVector.getLightVector()));
 
         canvas.onmousedown = (e: MouseEvent) =>
         {
@@ -213,11 +204,33 @@ export class MouseManager
 
         $("#global-app").keydown((e: JQuery.Event) => 
         {
-            console.log(`global key down "${e.which}"`);
-            if (e.which == 82)
+            let c = String.fromCharCode(e.which);            
+
+            switch (c)
             {
-                this.glContext.resetScene();
+                case "R":
+                    this.glContext.resetScene();
+                    $("#debug-lvec").text(`${ute.prettyVec3(this.lightVector.getLightVector())}`);
+                    break;
+                case "L":
+                    if (e.shiftKey)
+                    {
+                        this.lightVector.reset();
+                        this.glContext.drawScene("MouseManager::keydown");
+                        this.lightControl = false;
+                    }
+                    else
+                    {
+                        this.lightControl = true;
+                    }
+                    break;
             }
+            
+        });
+
+        $("#global-app").keyup( () =>
+        {            
+            this.lightControl = false;
         });
 
         canvas.onmouseup = (e: MouseEvent) =>
@@ -227,8 +240,7 @@ export class MouseManager
 
         canvas.onmouseleave = (e: MouseEvent) =>
         {
-            this.mouseDown = false;           
-            this.shiftDown = false; 
+            this.mouseDown = false;         
         }
 
         canvas.onmousemove = (e: MouseEvent) =>
@@ -240,10 +252,16 @@ export class MouseManager
                 let y = e.pageY - this.canvas.offsetTop;                
                 $("#debug-mouse").text(`${x},${y}`);         
                 let rot: glm.quat = this.arcBall.getIncDragRotation(x, y);
+                let lightRot: glm.quat = this.arcBall.getIncDragRotation(x, y);
                 let drag: glm.vec3 = this.perspectiveDrag.getIncDrag(x, y);
                 if (e.shiftKey)
                 {
-                    this.glMatrix.incRotation(rot);
+                   this.glMatrix.incRotation(rot);                   
+                }
+                else if(this.lightControl)
+                {
+                    this.lightVector.incRotation(rot);                    
+                    $("#debug-lvec").text(`${ute.prettyVec3(this.lightVector.getLightVector())}`);
                 }
                 else
                 {
@@ -253,8 +271,6 @@ export class MouseManager
             }
             return false;
         }
-
-        
 
         canvas.onwheel = (e: WheelEvent) =>
         {
