@@ -61,7 +61,7 @@
     require('./renderer.js')
 </script>
 
-<body>    
+<body id="global-app">    
 <div id="navigator">
     <i id="file-button" class="fa fa-floppy-o"></i>
     <i id="camera-button" class="fa fa-camera"></i>
@@ -79,12 +79,10 @@
 </div>
 
 <div id="process" class="ap-closed">
-    <div>The</div>
-    <div>quick</div>
-    <div>brown</div>
-    <div>fox...</div>
-    <br />
-    <div>That the colt from old Regret had got away,</div>
+    
+    <div>mouse:<span id="debug-mouse"></div>
+    <div>canvas:<span id="debug-canvas"></span></div>
+    
 </div>
     
 <div id="static-content">
@@ -94,8 +92,7 @@
     </div>
 
     <div id="dynamic-content">
-        <canvas id="canvas">          
-        </canvas>
+        <canvas id="canvas"></canvas>
         <div id="timebars"></div>
     </div>
 

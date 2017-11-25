@@ -536,7 +536,7 @@ class XHRLoader
         this.req.responseType = "arraybuffer";
         this.req.onload = () =>
         {
-            console.log(`Status ${this.req.status}`);            
+            //TODO check status here...
             let inBuffer: ArrayBuffer = this.req.response;
             if (inBuffer)
             {
@@ -620,7 +620,6 @@ class XHRPool
 
     returnLoader(loader: XHRLoader): void
     {
-        console.log(`loader returned: ${loader.frame.filename}`);
         this.loaders.push(loader);
         this.processQueue();
     }

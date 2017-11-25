@@ -144,6 +144,12 @@ export class GLContext
         this.initGLMatrixInitialised = false;
     }
 
+    resetScene(): void
+    {
+        this.initGLMatrixInitialised = false;
+        this.setBufferPack(this.currentBufferPack);
+    }
+
     setBufferPack(bufferPack: BufferPack): void
     {        
         this.currentBufferPack = bufferPack;        
@@ -169,6 +175,7 @@ export class GLContext
     {
         if ((this.width !== this.canvas.clientWidth) || (this.height !== this.canvas.clientHeight))
         {
+            
             this.width = this.canvas.clientWidth;
             this.height = this.canvas.clientHeight;
             this.horizAspect = this.height / this.width;

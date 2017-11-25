@@ -34,7 +34,8 @@ $(document).ready(() =>
 {    
     console.log(`Electron Version: ${process.versions.electron}`);
     popTree();
-    navControl.createNavigator();    
+    navControl.createNavigator();
+    //$("#global-app").keydown((e: JQuery.Event) => {console.log(`global key down "${e.which}"`);});
 });
 
 function popTree(): void

@@ -311,7 +311,7 @@ class XHRLoader {
         this.req = new XMLHttpRequest();
         this.req.responseType = "arraybuffer";
         this.req.onload = () => {
-            console.log(`Status ${this.req.status}`);
+            //TODO check status here...
             let inBuffer = this.req.response;
             if (inBuffer) {
                 this.frame.bufferState = "loaded" /* loaded */;
@@ -368,7 +368,6 @@ class XHRPool {
         loader.load(nextFrame);
     }
     returnLoader(loader) {
-        console.log(`loader returned: ${loader.frame.filename}`);
         this.loaders.push(loader);
         this.processQueue();
     }

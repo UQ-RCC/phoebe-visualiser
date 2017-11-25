@@ -33,12 +33,16 @@ class PerspectiveDrag {
 }
 class ArcBall {
     constructor(x, y) {
+        this.canvas = $("#canvas").get(0);
         this.centre = glm.vec2.create();
         this.radiusSquared = 0;
         this.sphereClick = glm.vec3.create();
         this.sphereDrag = glm.vec3.create();
         this.axis = glm.vec3.create();
         this.setScreenDimension(x, y);
+        window.addEventListener("resize", () => {
+            this.setScreenDimension(this.canvas.clientWidth, this.canvas.clientHeight);
+        });
     }
     setScreenDimension(x, y) {
         x /= 2.0;
@@ -110,8 +114,6 @@ class MouseManager {
     constructor(canvas, glContext, glMatrix) {
         this.glMatrix = glMatrix;
         this.canvas = canvas;
-        this.xOffset = this.canvas.offsetLeft;
-        this.yOffset = this.canvas.offsetTop;
         this.mouseDown = false;
         this.arcBall = new ArcBall(canvas.width, canvas.height);
         this.perspectiveDrag = new PerspectiveDrag(canvas.width, canvas.height);
@@ -119,13 +121,22 @@ class MouseManager {
         canvas.onmousedown = (e) => {
             canvas.focus();
             e.preventDefault(); //TODO: is this necessary? Check out proper way to implement canvas mouse behaviour.
-            let x = e.pageX - this.xOffset;
-            let y = e.pageY - this.yOffset;
+            let x = e.pageX - this.canvas.offsetLeft;
+            let y = e.pageY - this.canvas.offsetTop;
+            $("#debug-aoffset-mouse").text(`${this.canvas.offsetLeft},${this.canvas.offsetTop}`);
+            $("#debug-raw-mouse").text(`${e.pageX},${e.pageY}`);
+            $("#debug-mouse").text(`${x},${y}`);
             this.mouseDown = true;
             this.arcBall.setClickVector(x, y);
             this.perspectiveDrag.setClickVector(x, y);
             return false;
         };
+        $("#global-app").keydown((e) => {
+            console.log(`global key down "${e.which}"`);
+            if (e.which == 82) {
+                this.glContext.resetScene();
+            }
+        });
         canvas.onmouseup = (e) => {
             this.mouseDown = false;
         };
@@ -136,8 +147,9 @@ class MouseManager {
         canvas.onmousemove = (e) => {
             if (this.mouseDown) {
                 e.preventDefault();
-                let x = e.pageX - this.xOffset;
-                let y = e.pageY - this.yOffset;
+                let x = e.pageX - this.canvas.offsetLeft;
+                let y = e.pageY - this.canvas.offsetTop;
+                $("#debug-mouse").text(`${x},${y}`);
                 let rot = this.arcBall.getIncDragRotation(x, y);
                 let drag = this.perspectiveDrag.getIncDrag(x, y);
                 if (e.shiftKey) {
@@ -150,14 +162,9 @@ class MouseManager {
             }
             return false;
         };
-        canvas.onkeydown = (e) => {
-            this.shiftDown = true;
-        };
-        canvas.onkeyup = (e) => {
-            this.shiftDown = false;
-        };
         canvas.onwheel = (e) => {
-            this.glMatrix.incTranslationZ(glm.vec3.fromValues(0, 0, e.wheelDelta));
+            let factor = e.shiftKey ? 20 : 2;
+            this.glMatrix.incTranslationZ(glm.vec3.fromValues(0, 0, e.wheelDelta / factor));
             this.glContext.drawScene("MouseManager::onwheel");
         };
     }

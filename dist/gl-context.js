@@ -86,6 +86,10 @@ class GLContext {
     reinitialiseGLMatrix() {
         this.initGLMatrixInitialised = false;
     }
+    resetScene() {
+        this.initGLMatrixInitialised = false;
+        this.setBufferPack(this.currentBufferPack);
+    }
     setBufferPack(bufferPack) {
         this.currentBufferPack = bufferPack;
         if (bufferPack) {

@@ -64,6 +64,7 @@ class PerspectiveDrag
 
 class ArcBall
 {
+    private canvas: HTMLCanvasElement;
     private centre: glm.vec2;
     private radiusSquared: number;
     private sphereClick: glm.vec3;
@@ -71,13 +72,18 @@ class ArcBall
     private axis: glm.vec3;
         
     constructor(x: number, y: number)
-    {
+    {        
+        this.canvas = $("#canvas").get(0) as HTMLCanvasElement;
         this.centre = glm.vec2.create();
         this.radiusSquared = 0;
         this.sphereClick = glm.vec3.create();
         this.sphereDrag = glm.vec3.create();
         this.axis = glm.vec3.create();        
         this.setScreenDimension(x, y);
+        window.addEventListener("resize", () =>
+        {            
+            this.setScreenDimension(this.canvas.clientWidth, this.canvas.clientHeight);            
+        });
 
     }
 
@@ -165,6 +171,8 @@ class ArcBall
     
 }
 
+
+
 export class MouseManager
 {
 
@@ -172,18 +180,14 @@ export class MouseManager
     glMatrix: GLMatrix;
     arcBall: ArcBall;
     perspectiveDrag: PerspectiveDrag;
-    glContext: GLContext;
-    xOffset: number;
-    yOffset: number;
+    glContext: GLContext;    
     mouseDown: Boolean;
     shiftDown: Boolean;
-    
+        
     constructor(canvas: HTMLCanvasElement, glContext: GLContext, glMatrix: GLMatrix)
     {
         this.glMatrix = glMatrix;
         this.canvas = canvas;        
-        this.xOffset = this.canvas.offsetLeft;
-        this.yOffset = this.canvas.offsetTop;        
         this.mouseDown = false;
         this.arcBall = new ArcBall(canvas.width, canvas.height);
         this.perspectiveDrag = new PerspectiveDrag(canvas.width, canvas.height);
@@ -193,13 +197,28 @@ export class MouseManager
         {
             canvas.focus();
             e.preventDefault(); //TODO: is this necessary? Check out proper way to implement canvas mouse behaviour.
-            let x = e.pageX - this.xOffset;
-            let y = e.pageY - this.yOffset;
+            let x = e.pageX - this.canvas.offsetLeft;
+            let y = e.pageY - this.canvas.offsetTop;
+
+            $("#debug-aoffset-mouse").text(`${this.canvas.offsetLeft},${this.canvas.offsetTop}`);
+            $("#debug-raw-mouse").text(`${e.pageX},${e.pageY}`);
+            $("#debug-mouse").text(`${x},${y}`);
             this.mouseDown = true;            
             this.arcBall.setClickVector(x, y);
             this.perspectiveDrag.setClickVector(x, y);
+
+
             return false;
         }
+
+        $("#global-app").keydown((e: JQuery.Event) => 
+        {
+            console.log(`global key down "${e.which}"`);
+            if (e.which == 82)
+            {
+                this.glContext.resetScene();
+            }
+        });
 
         canvas.onmouseup = (e: MouseEvent) =>
         {
@@ -217,8 +236,9 @@ export class MouseManager
             if (this.mouseDown)
             {
                 e.preventDefault();                
-                let x = e.pageX - this.xOffset;
-                let y = e.pageY - this.yOffset;                
+                let x = e.pageX - this.canvas.offsetLeft;
+                let y = e.pageY - this.canvas.offsetTop;                
+                $("#debug-mouse").text(`${x},${y}`);         
                 let rot: glm.quat = this.arcBall.getIncDragRotation(x, y);
                 let drag: glm.vec3 = this.perspectiveDrag.getIncDrag(x, y);
                 if (e.shiftKey)
@@ -234,19 +254,12 @@ export class MouseManager
             return false;
         }
 
-        canvas.onkeydown = (e: KeyboardEvent) =>
-        {
-            this.shiftDown = true;            
-        }
-
-        canvas.onkeyup = (e: KeyboardEvent) =>
-        {
-            this.shiftDown = false;
-        }
+        
 
         canvas.onwheel = (e: WheelEvent) =>
         {
-            this.glMatrix.incTranslationZ(glm.vec3.fromValues(0, 0, e.wheelDelta));
+            let factor: number = e.shiftKey ? 20 : 2;
+            this.glMatrix.incTranslationZ(glm.vec3.fromValues(0, 0, e.wheelDelta / factor));
             this.glContext.drawScene("MouseManager::onwheel");
         }
         
@@ -322,8 +335,6 @@ export class TimeBar {
     private canvas: HTMLCanvasElement;    
     private segmentationRecords: Segmentation[] = []; // This needs to be a set
     private defaultSegmentation: Segmentation | null;
-
-
     
     readonly context: CanvasRenderingContext2D;    
     private normalisedValue: number = 0.0;
