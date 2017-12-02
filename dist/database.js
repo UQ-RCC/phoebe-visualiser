@@ -17,6 +17,7 @@ class DBIO {
         this.queryMap.set('tree', 'select * from get_directories($1)');
         this.queryMap.set('get_seg_status', 'select * from get_seg_status($1)');
         this.queryMap.set('enqueue_segmentation_job', 'select * from enqueue_segmentation_job($1, $2)');
+        this.queryMap.set('delete_segmentation', 'select * from delete_segmentation($1)');
         this.queryMap.set('activate_frame', 'select * from activate_frame($1, $2)');
         this.queryMap.set('deactivate_frame', 'select * from deactivate_frame($1)');
         this.pool = new pg.Pool({

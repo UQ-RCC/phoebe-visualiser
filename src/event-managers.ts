@@ -208,7 +208,7 @@ export class MouseManager
 
             switch (c)
             {
-                case "R":
+                case "R":                    
                     this.glContext.resetScene();
                     $("#debug-lvec").text(`${ute.prettyVec3(this.lightVector.getLightVector())}`);
                     break;

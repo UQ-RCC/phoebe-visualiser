@@ -273,8 +273,7 @@ export class Segmentation
     name: string;
     value: number;
     frames: Frame[] = [];
-    private active: boolean = false; // active in timeBar
-    //currentFrame: number = 0;
+    private active: boolean = false; // active in timeBar    
     cachePath: string;
     segmentationUI: SegmentationUI;
     
@@ -322,6 +321,10 @@ export class Segmentation
 
     setActive(active: boolean)
     {
+        if (this.active == active)
+        {
+            return;
+        }
         this.checkFileBuffer();
         this.active = active;        
         if (active)
@@ -334,6 +337,17 @@ export class Segmentation
         else
         {
             DBIO.getInstance().queryByObject("deactivate_frame", this.id);
+        }
+    }
+
+    delete()
+    {
+        this.setActive(false);
+        DBIO.getInstance().queryByObject("delete_segmentation", this.id)
+        this.channel.deleteSegmentation(this);
+        if (this.segmentationUI)
+        {
+            this.segmentationUI.getChannelUI().deleteSegmentation(this);
         }
     }
 
@@ -395,7 +409,6 @@ export class Segmentation
         {            
             if (f.id == frameID)
             {
-                console.log(`F ${f.id} set to ${message.status}`);
                 f.status = message.status;
                 f.bufferState = BufferState.empty;
                 if (this.segmentationUI)
@@ -459,6 +472,17 @@ export class Channel
         return segmentation;
     }
 
+    public deleteSegmentation(s: Segmentation)
+    {
+        let i = this.segmentation.indexOf(s);
+        if (i > -1)
+        {
+            console.log(`Deleting segmentation ${this.segmentation[i].toString()}`);
+            this.segmentation.splice(i,1);
+            
+        }
+    }
+
     public deactivateOthers(s: Segmentation)
     {
         this.segmentation.forEach(sl =>
@@ -472,8 +496,13 @@ export class Channel
 
     processDBMessage(message: any)
     {
+        console.log(`db message: ${JSON.stringify(message)}`);
         let segmentationID = message.segmentation_id;
-        console.log(`C ${segmentationID}`);
+        if (message.status == 'deleted')
+        {
+            console.log(`we are deleting`);
+
+        }
         this.segmentation.forEach(s =>
         {            
             if (s.id == segmentationID)
@@ -508,10 +537,9 @@ export class Experiment
     }
 
     processDBMessage(message: any)
-    {
+    {        
         let messageObj: any = JSON.parse(message);
         let channelId = messageObj.channel_id;
-        console.log(`E ${message} : ${channelId}`);
         this.channels.forEach(c =>
         {
             if (c.id == channelId)

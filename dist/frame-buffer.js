@@ -140,7 +140,7 @@ exports.FrameBuffer = FrameBuffer;
 class Segmentation {
     constructor(channel, segmentationRecord) {
         this.frames = [];
-        this.active = false; // active in timeBar
+        this.active = false; // active in timeBar    
         this.channel = channel;
         this.value = segmentationRecord.value;
         this.cachePath = channel.experiment.frameBuffer.cachePath;
@@ -169,6 +169,9 @@ class Segmentation {
         });
     }
     setActive(active) {
+        if (this.active == active) {
+            return;
+        }
         this.checkFileBuffer();
         this.active = active;
         if (active) {
@@ -179,6 +182,14 @@ class Segmentation {
         }
         else {
             database_1.DBIO.getInstance().queryByObject("deactivate_frame", this.id);
+        }
+    }
+    delete() {
+        this.setActive(false);
+        database_1.DBIO.getInstance().queryByObject("delete_segmentation", this.id);
+        this.channel.deleteSegmentation(this);
+        if (this.segmentationUI) {
+            this.segmentationUI.getChannelUI().deleteSegmentation(this);
         }
     }
     checkFileBuffer() {
@@ -221,7 +232,6 @@ class Segmentation {
         let frameID = message.segmentation_frame_id;
         this.frames.forEach(f => {
             if (f.id == frameID) {
-                console.log(`F ${f.id} set to ${message.status}`);
                 f.status = message.status;
                 f.bufferState = "empty" /* empty */;
                 if (this.segmentationUI) {
@@ -263,6 +273,13 @@ class Channel {
         this.segmentation.push(segmentation);
         return segmentation;
     }
+    deleteSegmentation(s) {
+        let i = this.segmentation.indexOf(s);
+        if (i > -1) {
+            console.log(`Deleting segmentation ${this.segmentation[i].toString()}`);
+            this.segmentation.splice(i, 1);
+        }
+    }
     deactivateOthers(s) {
         this.segmentation.forEach(sl => {
             if (s != sl) {
@@ -271,8 +288,11 @@ class Channel {
         });
     }
     processDBMessage(message) {
+        console.log(`db message: ${JSON.stringify(message)}`);
         let segmentationID = message.segmentation_id;
-        console.log(`C ${segmentationID}`);
+        if (message.status == 'deleted') {
+            console.log(`we are deleting`);
+        }
         this.segmentation.forEach(s => {
             if (s.id == segmentationID) {
                 s.processDBMessage(message);
@@ -296,7 +316,6 @@ class Experiment {
     processDBMessage(message) {
         let messageObj = JSON.parse(message);
         let channelId = messageObj.channel_id;
-        console.log(`E ${message} : ${channelId}`);
         this.channels.forEach(c => {
             if (c.id == channelId) {
                 c.processDBMessage(messageObj);

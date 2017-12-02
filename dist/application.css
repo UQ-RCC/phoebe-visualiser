@@ -156,6 +156,10 @@ body {
     cursor: pointer
 }
 
+.segmentation-properties:focus {
+    outline: none;
+}
+
 .segmentation-properties-on {
     border-color: darkorange;
 }

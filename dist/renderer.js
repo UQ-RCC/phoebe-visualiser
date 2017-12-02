@@ -68,6 +68,7 @@ class SegmentationUI {
         this.segSpan = $("<span>").addClass("segmentation-properties");
         this.channelUI = c;
         this.segmentation = s;
+        this.segSpan.attr('tabindex', 1);
         this.segSpan.text(this.segmentation.value);
         this.segSpan.click(() => {
             this.segSpan.toggleClass("segmentation-properties-on");
@@ -76,6 +77,19 @@ class SegmentationUI {
             }
             else {
                 this.setActive(false);
+            }
+        });
+        this.segSpan.keydown((e) => {
+            // Don't allow tab keys
+            if (e.which = 9) {
+                e.preventDefault();
+            }
+        });
+        this.segSpan.keyup((e) => {
+            console.log(`click: ${this.segmentation.value} ${e.which}`);
+            if (e.which = 46) {
+                console.log(`delete click event ${this.segmentation.value}`);
+                this.segmentation.delete();
             }
         });
         s.attachUI(this);
@@ -93,7 +107,7 @@ class SegmentationUI {
             this.channelUI.segmentationActivated(this.segmentation, false);
         }
     }
-    getSegmentationDiv() {
+    getSegmentationSpan() {
         return this.segSpan;
     }
     getSegmentation() {
@@ -104,6 +118,9 @@ class SegmentationUI {
             this.channelUI.getSetController().getDefaultTimeBar().resize();
             this.channelUI.getSetController().getDefaultTimeBar().displayCurrentFrame();
         }
+    }
+    getChannelUI() {
+        return this.channelUI;
     }
 }
 exports.SegmentationUI = SegmentationUI;
@@ -156,9 +173,14 @@ class ChannelUI {
         let segUI = new SegmentationUI(s, this);
         this.addSegmentationUI(segUI);
     }
+    deleteSegmentation(s) {
+        console.log(`del UI${s.toString()}`);
+        this.segmentationUI.forEach(e => { this.segValuesSpan.append(e.getSegmentationSpan()); });
+    }
     addSegmentationUI(ui) {
         this.segmentationUI.push(ui);
-        this.segValuesSpan.append(ui.getSegmentationDiv());
+        this.segmentationUI.sort((e1, e2) => { return e1.getSegmentation().value - e2.getSegmentation().value; });
+        this.segmentationUI.forEach(e => { this.segValuesSpan.append(e.getSegmentationSpan()); });
     }
     deactivateOther(s) {
         this.segmentationUI.forEach(sl => {
@@ -213,7 +235,6 @@ class SetController {
         }
     }
     processDBMessage(message) {
-        console.log(`SC ${message}`);
         if (this.currentExperiment) {
             this.currentExperiment.processDBMessage(message);
         }
