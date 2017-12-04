@@ -477,9 +477,9 @@ export class Channel
         let i = this.segmentation.indexOf(s);
         if (i > -1)
         {
-            console.log(`Deleting segmentation ${this.segmentation[i].toString()}`);
+            console.log(`Deleting segmentation ${this.segmentation[i].toString()} ${this.segmentation.length}`);
             this.segmentation.splice(i,1);
-            
+            console.log(`Deleted segmentation ${this.segmentation.length}`);
         }
     }
 

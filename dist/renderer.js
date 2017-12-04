@@ -174,8 +174,11 @@ class ChannelUI {
         this.addSegmentationUI(segUI);
     }
     deleteSegmentation(s) {
-        console.log(`del UI${s.toString()}`);
-        this.segmentationUI.forEach(e => { this.segValuesSpan.append(e.getSegmentationSpan()); });
+        console.log(`del UI${s.toString()} ${this.segmentationUI.length}`);
+        this.segmentationUI.forEach(e => {
+            this.segValuesSpan.append(e.getSegmentationSpan());
+            console.log(`added seg ${e.getSegmentation().toString()}`);
+        });
     }
     addSegmentationUI(ui) {
         this.segmentationUI.push(ui);
