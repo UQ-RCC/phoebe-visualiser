@@ -109,6 +109,7 @@ export class SegmentationUI
         this.channelUI = c;
         this.segmentation = s;
         this.segSpan.attr('tabindex', 1);
+        this.segSpan.attr('value', s.value);        
 
         this.segSpan.text(this.segmentation.value);
         this.segSpan.click(() =>
@@ -135,11 +136,13 @@ export class SegmentationUI
 
         this.segSpan.keyup((e) => 
         {
-            console.log(`click: ${this.segmentation.value} ${e.which}`);
-            if (e.which = 46)
-            {
-                console.log(`delete click event ${this.segmentation.value}`);                
-                this.segmentation.delete();
+            console.log(`seg span : ${e.which}`);
+            if (e.which == 46)
+            {      
+                if (this.segmentation.isActive())
+                {
+                    this.segmentation.delete();
+                }
             }            
         })
         s.attachUI(this);
@@ -218,9 +221,15 @@ class ChannelUI
             {
                 if ((this.segInput.val() as string).length > 0)
                 {
-                    let segmentation = this.channel.addNewSegmentation({id: null, value: this.segInput.val() as number});       
-                    this.addSegmentation(segmentation);
-                }
+                    let newVal = this.segInput.val() as number;
+                    let i = this.segmentationUI.map(sui => sui.getSegmentation().value).indexOf(newVal);
+                    if (i == -1)
+                    {
+                        let segmentation = this.channel.addNewSegmentation({id: null, value: this.segInput.val() as number});       
+                        this.addSegmentation(segmentation);
+                    }
+                    this.segInput.val("");
+                }                
                 this.segInput.hide().width(0);
             }
         });
@@ -255,25 +264,26 @@ class ChannelUI
 
     addSegmentation(s: Segmentation)
     {
-        let segUI: SegmentationUI = new SegmentationUI(s, this);        
+        let segUI: SegmentationUI = new SegmentationUI(s, this); 
         this.addSegmentationUI(segUI);
     }
 
     deleteSegmentation(s: Segmentation)
     {
-        console.log(`del UI${s.toString()} ${this.segmentationUI.length}`);
-        this.segmentationUI.forEach(e => 
+        let  i = this.segmentationUI.map(ui => ui.getSegmentation()).indexOf(s);
+        if (i > -1)
         {
-                this.segValuesSpan.append(e.getSegmentationSpan());
-                console.log(`added seg ${e.getSegmentation().toString()}`);
-        });
+            this.segmentationUI[i].setActive(false);
+            this.segmentationUI.splice(i, 1);
+            this.segValuesSpan.children(`span[value='${s.value}']`).remove();
+        }        
     }
 
     addSegmentationUI(ui: SegmentationUI): void
     {
         this.segmentationUI.push(ui);
         this.segmentationUI.sort((e1, e2) => {return e1.getSegmentation().value - e2.getSegmentation().value});        
-        this.segmentationUI.forEach(e => {this.segValuesSpan.append(e.getSegmentationSpan())});
+        this.segmentationUI.forEach(e => {this.segValuesSpan.append(e.getSegmentationSpan())}); 
     }
 
     deactivateOther(s: Segmentation)

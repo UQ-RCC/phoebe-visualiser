@@ -340,6 +340,11 @@ export class Segmentation
         }
     }
 
+    isActive(): boolean
+    {
+        return this.active;
+    }
+
     delete()
     {
         this.setActive(false);
@@ -476,10 +481,8 @@ export class Channel
     {
         let i = this.segmentation.indexOf(s);
         if (i > -1)
-        {
-            console.log(`Deleting segmentation ${this.segmentation[i].toString()} ${this.segmentation.length}`);
-            this.segmentation.splice(i,1);
-            console.log(`Deleted segmentation ${this.segmentation.length}`);
+        {            
+            this.segmentation.splice(i,1);         
         }
     }
 
@@ -495,13 +498,11 @@ export class Channel
     }
 
     processDBMessage(message: any)
-    {
-        console.log(`db message: ${JSON.stringify(message)}`);
+    {        
         let segmentationID = message.segmentation_id;
         if (message.status == 'deleted')
         {
-            console.log(`we are deleting`);
-
+            console.log(`from db : we are deleting -- do it here`);
         }
         this.segmentation.forEach(s =>
         {            

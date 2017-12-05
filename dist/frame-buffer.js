@@ -184,6 +184,9 @@ class Segmentation {
             database_1.DBIO.getInstance().queryByObject("deactivate_frame", this.id);
         }
     }
+    isActive() {
+        return this.active;
+    }
     delete() {
         this.setActive(false);
         database_1.DBIO.getInstance().queryByObject("delete_segmentation", this.id);
@@ -276,9 +279,7 @@ class Channel {
     deleteSegmentation(s) {
         let i = this.segmentation.indexOf(s);
         if (i > -1) {
-            console.log(`Deleting segmentation ${this.segmentation[i].toString()} ${this.segmentation.length}`);
             this.segmentation.splice(i, 1);
-            console.log(`Deleted segmentation ${this.segmentation.length}`);
         }
     }
     deactivateOthers(s) {
@@ -289,10 +290,9 @@ class Channel {
         });
     }
     processDBMessage(message) {
-        console.log(`db message: ${JSON.stringify(message)}`);
         let segmentationID = message.segmentation_id;
         if (message.status == 'deleted') {
-            console.log(`we are deleting`);
+            console.log(`from db : we are deleting -- do it here`);
         }
         this.segmentation.forEach(s => {
             if (s.id == segmentationID) {
