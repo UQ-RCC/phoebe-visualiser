@@ -254,6 +254,7 @@ exports.Segmentation = Segmentation;
 class Channel {
     constructor(experiment, channelRecord) {
         this.currentFrame = 0;
+        this.colour = [0.2, 0.2, 0.2, 1.0];
         this.segmentation = [];
         this.experiment = experiment;
         this.id = channelRecord.id;
@@ -299,6 +300,14 @@ class Channel {
                 s.processDBMessage(message);
             }
         });
+    }
+    setColour(rgbaString) {
+        let parseString = rgbaString.match(/[0-9]*\.?([0-9]+)/g);
+        this.colour[0] = +parseString[0] / 255;
+        this.colour[1] = +parseString[1] / 255;
+        this.colour[2] = +parseString[2] / 255;
+        this.colour[3] = +parseString[3];
+        console.log(`ca: ${this.colour}`);
     }
 }
 exports.Channel = Channel;

@@ -366,8 +366,6 @@ export class TimeBar {
     private colorEmpty: string;
     private colorLoaded: string;
     private colourLookup: ColourLookup = new ColourLookup();
-
-    //private readonly glContext: GLContext = GLContext.getInstance();
     
     constructor()
     {
@@ -400,7 +398,7 @@ export class TimeBar {
     }
 
     activateSegmentation(segmentation: Segmentation): void    
-    {        
+    {
         this.segmentationRecords.push(segmentation);
         this.defaultSegmentation = segmentation;
         this.currentValue = segmentation.channel.getCurrentFrame();

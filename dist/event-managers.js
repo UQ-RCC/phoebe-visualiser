@@ -203,7 +203,6 @@ class TimeKeep {
     }
 }
 class TimeBar {
-    //private readonly glContext: GLContext = GLContext.getInstance();
     constructor() {
         this.frameCount = 0;
         this.segmentationRecords = []; // This needs to be a set

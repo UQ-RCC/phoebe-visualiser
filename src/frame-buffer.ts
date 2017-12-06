@@ -72,11 +72,12 @@ export class BufferPack
     nextBufferPack: BufferPack | null;
     fileName: string | null;
 
-    constructor(frameNumber: number, fileName: string | null) {
+    constructor(frameNumber: number, fileName: string | null)
+    {
         this.frameNumber = frameNumber;
         this.nextBufferPack = null;
         this.fileName = fileName;
-        this.state = BufferState.empty;        
+        this.state = BufferState.empty;
     }
 
     setNextBufferPack(bufferPack: BufferPack) {
@@ -443,6 +444,7 @@ export class Channel
     channelNumber: number;
     segmentation: Segmentation[];
     private currentFrame: number = 0;
+    private colour: number[] = [0.2, 0.2, 0.2, 1.0];
 
     constructor(experiment: Experiment, channelRecord: ChannelRecord)
     {        
@@ -511,6 +513,16 @@ export class Channel
                 s.processDBMessage(message);
             }
         });
+    }
+
+    setColour(rgbaString: string): void
+    {
+        let parseString = rgbaString.match(/[0-9]*\.?([0-9]+)/g);
+        this.colour[0] = +parseString[0] / 255;
+        this.colour[1] = +parseString[1] / 255;
+        this.colour[2] = +parseString[2] / 255;
+        this.colour[3] = +parseString[3];
+        console.log(`ca: ${this.colour}`);
     }
 
 }

@@ -195,7 +195,7 @@ export class GLContext
                 this.initGLMatrixInitialised = true;
             }
             this.transferBuffers(this.currentBufferPack);            
-        }        
+        }
         this.drawScene("GLContext::setBufferPack");
     }
 
@@ -207,8 +207,6 @@ export class GLContext
 
     resize(called: string): void
     {
-        console.log(`resize called ${called} ${this.canvas.clientWidth} x ${this.canvas.clientHeight}`);
-        
         if ((this.width !== this.canvas.clientWidth) || (this.height !== this.canvas.clientHeight))
         {
             
@@ -221,7 +219,6 @@ export class GLContext
             this.drawScene("GLContext::resize");
             console.log(`  TGL canvas: ${this.canvas.width} x ${this.canvas.height}`);
         }
-        
     }
 
     drawScene(from: string): void
@@ -233,8 +230,11 @@ export class GLContext
         {
             //TODO near far need to be set depending on scene--this is in the bufferpack as well check
             const mPerspective = glm.mat4.perspective(glm.mat4.create(), 45, this.width / this.height, 10, 3000.0);
+
             
-            this.setMatrixUniforms(mPerspective, this.glMatrix.getWorldTransform(), this.lightVector.getLightVector()); //<-- Set uniforms here.
+            const tempColour: glm.vec4 = glm.vec4.fromValues(1,0,0,1);
+            
+            this.setMatrixUniforms(mPerspective, this.glMatrix.getWorldTransform(), this.lightVector.getLightVector(), tempColour); //<-- Set uniforms here.
             
             this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayBufferId);
             this.gl.vertexAttribPointer(this.vertexPositionAttribute, 3, this.gl.FLOAT, false, 0, 0);
@@ -327,7 +327,7 @@ export class GLContext
 
     }
 
-    private setMatrixUniforms(perspectiveMatrix: glm.mat4, mvMatrix: glm.mat4, lightVector: glm.vec3): void
+    private setMatrixUniforms(perspectiveMatrix: glm.mat4, mvMatrix: glm.mat4, lightVector: glm.vec3, colourVector: glm.vec4): void
     {
         const pUniform = this.gl.getUniformLocation(this.shaderProgram, "uPMatrix");        
         this.gl.uniformMatrix4fv(pUniform, false, new Float32Array(perspectiveMatrix));
@@ -337,6 +337,10 @@ export class GLContext
 
         const vlUniform = this.gl.getUniformLocation(this.shaderProgram, "uVLight");
         this.gl.uniform3fv(vlUniform, new Float32Array(lightVector));
+
+        const vCUniform = this.gl.getUniformLocation(this.shaderProgram, "uColour");        
+        this.gl.uniform4fv(vCUniform, new Float32Array(colourVector));
+
     }
 
     toString(): string

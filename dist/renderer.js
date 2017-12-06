@@ -256,21 +256,14 @@ class ExperimentUI {
         $("#experiment-info").append(this.expTable);
         this.experiment.channels.forEach(c => {
             let num = c.channelNumber;
-            //$(`.channel-${num}`).val('rgb(33, 147, 58)');
             $(`.channel-${num}`).minicolors({
                 inline: false,
                 control: 'hue',
                 opacity: true,
                 position: 'top right',
-                change: function (hex, opacity) {
-                    var log;
-                    try {
-                        log = hex ? hex : 'transparent';
-                        if (opacity)
-                            log += ', ' + opacity;
-                        console.log(log);
-                    }
-                    catch (e) { }
+                format: 'rgb',
+                change: (rgb, opacity) => {
+                    c.setColour(rgb);
                 },
                 theme: 'default'
             });
