@@ -1,21 +1,23 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const $ = require("jquery");
-function createNavigator() {
-    const navController = new NavController();
-    const fileEvent = new ChooseFile(navController);
-    const cameraEvent = new ScreenShot(navController);
-    const videoEvent = new Video(navController);
-    const processEvent = new Process(navController);
-    $("#file-button").click(() => fileEvent.toggle());
-    $("#camera-button").click(() => cameraEvent.toggle());
-    $("#movie-button").click(() => videoEvent.toggle());
-    $("#process-button").click(() => processEvent.toggle());
-}
-exports.createNavigator = createNavigator;
 class NavController {
     constructor() {
+        this.fileEvent = new ChooseFile(this);
+        this.cameraEvent = new ScreenShot(this);
+        this.videoEvent = new Video(this);
+        this.processEvent = new Process(this);
         this.resizeables = [];
+        $("#file-button").click(() => this.fileEvent.toggle());
+        $("#camera-button").click(() => this.cameraEvent.toggle());
+        $("#movie-button").click(() => this.videoEvent.toggle());
+        $("#process-button").click(() => this.processEvent.toggle());
+    }
+    static getInstance() {
+        if (!this.singletonNavController) {
+            this.singletonNavController = new NavController();
+        }
+        return this.singletonNavController;
     }
     activateElement(newElement) {
         if (this.currentElement) {
@@ -33,9 +35,12 @@ class NavController {
     }
     addResizable(resizable) {
         this.resizeables.push(resizable);
+        console.log(`added a resizable to NavController`);
     }
-    resize() {
-        this.resizeables.forEach(r => { r.resize(); });
+    resizeResizables() {
+        this.resizeables.forEach(r => {
+            r.resize("NavController::Event");
+        });
     }
 }
 exports.NavController = NavController;
@@ -48,11 +53,13 @@ class NavElement {
         this.selected = true;
         this.controller.activateElement(this);
         this.processOn();
+        this.controller.resizeResizables();
     }
     off() {
         this.selected = false;
         this.controller.deactivateElement(this);
         this.processOff();
+        this.controller.resizeResizables();
     }
     toggle() {
         if (this.selected) {
@@ -68,11 +75,21 @@ class ChooseFile extends NavElement {
     processOn() {
         $("#file-button").addClass("ap-icon-selected");
         //$("#file-selector").animate({ "max-width": "100%", "padding-right": "15px" }, "fast");
-        $("#file-selector").animate({ "max-width": "350px", "min-width": "250px", "padding-right": "15px" }, "fast");
+        $("#file-selector").animate({
+            "max-width": "350px",
+            "min-width": "250px",
+            "padding-right": "15px"
+        }, { "step": (() => { this.controller.resizeResizables(); }),
+            "duration": "fast" });
     }
     processOff() {
         $("#file-button").removeClass("ap-icon-selected");
-        $("#file-selector").animate({ "max-width": "0px", "min-width": "0px", "padding-right": "0px" }, "fast");
+        $("#file-selector").animate({
+            "max-width": "0px",
+            "min-width": "0px",
+            "padding-right": "0px"
+        }, { "step": (() => { this.controller.resizeResizables(); }),
+            "duration": "fast" });
     }
 }
 exports.ChooseFile = ChooseFile;
@@ -97,11 +114,19 @@ exports.Video = Video;
 class Process extends NavElement {
     processOn() {
         $("#process-button").addClass("ap-icon-selected");
-        $("#process").animate({ "max-width": "100%", "padding-right": "15px" }, "fast");
+        $("#process").animate({
+            "max-width": "100%",
+            "padding-right": "15px"
+        }, { "step": (() => { this.controller.resizeResizables(); }),
+            "duration": "fast" });
     }
     processOff() {
         $("#process-button").removeClass("ap-icon-selected");
-        $("#process").animate({ "max-width": "0px", "padding-right": "0px" }, "fast");
+        $("#process").animate({
+            "max-width": "0px",
+            "padding-right": "0px"
+        }, { "step": (() => { this.controller.resizeResizables(); }),
+            "duration": "fast" });
     }
 }
 exports.Process = Process;

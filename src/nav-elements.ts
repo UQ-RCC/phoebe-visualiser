@@ -1,23 +1,34 @@
 import * as $ from "jquery";
 
-export function createNavigator(): void
-{
-    const navController: NavController = new NavController();
-    const fileEvent: ChooseFile = new ChooseFile(navController);
-    const cameraEvent: ScreenShot = new ScreenShot(navController);
-    const videoEvent: Video = new Video(navController);
-    const processEvent: Process = new Process(navController);
-    $("#file-button").click(() => fileEvent.toggle());
-    $("#camera-button").click(() => cameraEvent.toggle());
-    $("#movie-button").click(() => videoEvent.toggle());
-    $("#process-button").click(() => processEvent.toggle());
-}
-
 export class NavController
 {
 
+    private static singletonNavController;
+    
+    readonly fileEvent: ChooseFile = new ChooseFile(this);
+    readonly cameraEvent: ScreenShot = new ScreenShot(this);
+    readonly videoEvent: Video = new Video(this);
+    readonly processEvent: Process = new Process(this);
+
     private currentElement: NavElement;
     private resizeables: any[] = []
+
+    public static getInstance(): NavController
+	{
+		if (!this.singletonNavController)
+		{
+			this.singletonNavController = new NavController();
+		}
+		return this.singletonNavController;
+	}
+
+    private constructor()
+    {
+        $("#file-button").click(() => this.fileEvent.toggle());
+        $("#camera-button").click(() => this.cameraEvent.toggle());
+        $("#movie-button").click(() => this.videoEvent.toggle());
+        $("#process-button").click(() => this.processEvent.toggle());
+    }
 
     activateElement(newElement: NavElement): void
     {
@@ -43,11 +54,15 @@ export class NavController
     addResizable(resizable: any): void
     {
         this.resizeables.push(resizable);
+        console.log(`added a resizable to NavController`);
     }
 
-    private resize(): void
+    public resizeResizables(): void
     {
-        this.resizeables.forEach(r => {r.resize()});
+        this.resizeables.forEach(r => 
+        {            
+            r.resize("NavController::Event")
+        });
     }
 
 }
@@ -67,6 +82,7 @@ export abstract class NavElement
         this.selected = true;
         this.controller.activateElement(this);
         this.processOn();
+        this.controller.resizeResizables();
     }
 
     off(): void
@@ -74,6 +90,7 @@ export abstract class NavElement
         this.selected = false;
         this.controller.deactivateElement(this);
         this.processOff();
+        this.controller.resizeResizables();
     }
 
     toggle(): void
@@ -99,13 +116,23 @@ export class ChooseFile extends NavElement
     {
         $("#file-button").addClass("ap-icon-selected");
         //$("#file-selector").animate({ "max-width": "100%", "padding-right": "15px" }, "fast");
-        $("#file-selector").animate({ "max-width": "350px", "min-width": "250px", "padding-right": "15px" }, "fast");
+        $("#file-selector").animate({
+            "max-width": "350px",
+            "min-width": "250px",
+            "padding-right": "15px" },
+            {"step" : (() => {this.controller.resizeResizables()}),
+            "duration" : "fast"});
     }
 
     processOff(): void
     {
         $("#file-button").removeClass("ap-icon-selected");
-        $("#file-selector").animate({ "max-width": "0px", "min-width": "0px", "padding-right": "0px" }, "fast");
+        $("#file-selector").animate({
+            "max-width": "0px",
+            "min-width": "0px",
+            "padding-right": "0px" },
+            {"step" : (() => {this.controller.resizeResizables()}),
+            "duration" : "fast"});            
     }
 
 }
@@ -138,11 +165,19 @@ export class Process extends NavElement
 {
     processOn(): void {
         $("#process-button").addClass("ap-icon-selected");
-        $("#process").animate({ "max-width": "100%", "padding-right": "15px" }, "fast");
+        $("#process").animate({ 
+            "max-width" : "100%",
+            "padding-right": "15px"},
+            {"step" : (() => {this.controller.resizeResizables()}),
+             "duration" : "fast"});
     }
 
     processOff(): void {
         $("#process-button").removeClass("ap-icon-selected");
-        $("#process").animate({ "max-width": "0px", "padding-right": "0px" }, "fast");
+        $("#process").animate({
+            "max-width": "0px",
+            "padding-right": "0px"},
+            {"step" : (() => {this.controller.resizeResizables()}),
+             "duration" : "fast"});
     }
 }

@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const event_managers_1 = require("./event-managers");
+const nav_elements_1 = require("./nav-elements");
 const glm = require("gl-matrix");
 const $ = require("jquery");
 const gl_matrix_1 = require("gl-matrix");
@@ -91,15 +92,16 @@ class GLContext {
         this.gl.depthFunc(this.gl.LEQUAL);
         this.initBuffers();
         this.initShaders();
-        this.resize();
+        this.resize("GLContext::Constructor");
         const mm = new event_managers_1.MouseManager(this.canvas, this, this.glMatrix, this.lightVector);
-        window.addEventListener("resize", () => { this.resize(); });
+        window.addEventListener("resize", () => { this.resize("Window::Event"); });
         //const timeKeeper: TimeKeep = new TimeKeep(xRange, this.drawScene, this.glMatrix);  // xRange is the slider
         //timeKeeper.start();
     }
     static getInstance() {
         if (!this.singletonGlContext) {
             this.singletonGlContext = new GLContext();
+            nav_elements_1.NavController.getInstance().addResizable(this.singletonGlContext);
         }
         return this.singletonGlContext;
     }
@@ -126,7 +128,8 @@ class GLContext {
         this.currentBufferPack = null;
         this.drawScene("GLContext::clear");
     }
-    resize() {
+    resize(called) {
+        console.log(`resize called ${called} ${this.canvas.clientWidth} x ${this.canvas.clientHeight}`);
         if ((this.width !== this.canvas.clientWidth) || (this.height !== this.canvas.clientHeight)) {
             this.width = this.canvas.clientWidth;
             this.height = this.canvas.clientHeight;
@@ -135,7 +138,6 @@ class GLContext {
             this.canvas.height = this.height;
             this.gl.viewport(0, 0, this.width, this.height); // Change to this...
             this.drawScene("GLContext::resize");
-            console.log(`  TGL client: ${this.canvas.clientWidth} x ${this.canvas.clientHeight}`);
             console.log(`  TGL canvas: ${this.canvas.width} x ${this.canvas.height}`);
         }
     }
@@ -219,6 +221,9 @@ class GLContext {
         this.gl.uniformMatrix4fv(mvUniform, false, new Float32Array(mvMatrix));
         const vlUniform = this.gl.getUniformLocation(this.shaderProgram, "uVLight");
         this.gl.uniform3fv(vlUniform, new Float32Array(lightVector));
+    }
+    toString() {
+        return "Gl Context";
     }
 }
 exports.GLContext = GLContext;

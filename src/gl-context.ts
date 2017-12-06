@@ -1,8 +1,6 @@
-﻿import { NavController } from './nav-elements';
-
-import { MouseManager } from "./event-managers";
+﻿import { MouseManager } from "./event-managers";
 import { BufferState, BufferPack} from "./frame-buffer";
-import * as navControl from './nav-elements';
+import { NavController } from './nav-elements';
 import * as glm from 'gl-matrix';
 import * as $ from 'jquery';
 import * as fs from 'fs';
@@ -132,7 +130,8 @@ export class GLContext
     {
         if (!this.singletonGlContext)
         {
-            this.singletonGlContext = new GLContext();            
+            this.singletonGlContext = new GLContext();
+            NavController.getInstance().addResizable(this.singletonGlContext);
         }
         return this.singletonGlContext;
     }
@@ -164,9 +163,9 @@ export class GLContext
         this.gl.depthFunc(this.gl.LEQUAL);
         this.initBuffers();
         this.initShaders();
-        this.resize();
+        this.resize("GLContext::Constructor");
         const mm: MouseManager = new MouseManager(this.canvas, this, this.glMatrix, this.lightVector);
-        window.addEventListener("resize", () => { this.resize(); });
+        window.addEventListener("resize", () => { this.resize("Window::Event"); });
 
         //const timeKeeper: TimeKeep = new TimeKeep(xRange, this.drawScene, this.glMatrix);  // xRange is the slider
         //timeKeeper.start();
@@ -206,8 +205,9 @@ export class GLContext
         this.drawScene("GLContext::clear");
     }
 
-    resize(): void
+    resize(called: string): void
     {
+        console.log(`resize called ${called} ${this.canvas.clientWidth} x ${this.canvas.clientHeight}`);
         
         if ((this.width !== this.canvas.clientWidth) || (this.height !== this.canvas.clientHeight))
         {
@@ -219,10 +219,7 @@ export class GLContext
             this.canvas.height = this.height;
             this.gl.viewport(0, 0, this.width, this.height); // Change to this...
             this.drawScene("GLContext::resize");
-
-            console.log(`  TGL client: ${this.canvas.clientWidth} x ${this.canvas.clientHeight}`);
             console.log(`  TGL canvas: ${this.canvas.width} x ${this.canvas.height}`);
-
         }
         
     }
@@ -340,6 +337,11 @@ export class GLContext
 
         const vlUniform = this.gl.getUniformLocation(this.shaderProgram, "uVLight");
         this.gl.uniform3fv(vlUniform, new Float32Array(lightVector));
+    }
+
+    toString(): string
+    {
+        return "Gl Context";
     }
 
 }

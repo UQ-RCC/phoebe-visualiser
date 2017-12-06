@@ -36,18 +36,15 @@ $(document).ready(() =>
 {    
     console.log(`Electron Version: ${process.versions.electron}`);
     popTree();
-    navControl.createNavigator();
+
+    //navControl.createNavigator();
+    navControl.NavController.getInstance();
     
     $("#col-pick").minicolors({
-        inline: true,
-        control: 'hue',
-        //defaultValue: $(this).attr('data-defaultValue') || '',
-        //format: $(this).attr('data-format') || 'hex',
-        //keywords: $(this).attr('data-keywords') || '',        
-        //letterCase: $(this).attr('data-letterCase') || 'lowercase',
+        inline: false,
+        control: 'hue',        
         opacity: true,
-        //position: $(this).attr('data-position') || 'bottom left',
-        //swatches: $(this).attr('data-swatches') ? $(this).attr('data-swatches').split('|') : [],
+        position: 'top left',        
         change: function(hex, opacity) {
           var log;
           try {
@@ -222,6 +219,7 @@ class ChannelUI
     private segInput: JQuery = $(`<input type="number">`).addClass("seg-input-value");
     private segValuesSpan: JQuery = $("<span>");
     private segColourButton: JQuery = $(`<i>`).addClass("fa fa-circle");
+    private segColourSpan: JQuery = $(`<span>`);
 
     private channelRow: JQuery = $('<tr>').addClass("channel-row");
 
@@ -263,11 +261,30 @@ class ChannelUI
             this.segInput.focus();
         });
 
+        this.segColourSpan.addClass(`channel-${c.channelNumber}`);
+        
+        switch (this.channel.channelNumber)
+        {
+            case 0: {
+                this.segColourSpan.val('rgb(191, 47, 47)');
+                break
+            };
+            case 1: {
+                this.segColourSpan.val('rgb(47, 217, 120)');
+                break;
+            }
+            default: {
+                this.segColourSpan.val('rgb(47, 47, 200)');
+                break;
+            }
+
+        }
+
         this.channelRow
             .append($('<td>').addClass("channel-data").append(this.segAddButton))
             .append($('<td>').addClass("channel-data").append(this.segLabelSpan))
             .append($('<td>').addClass("channel-value-data").append(this.segInput).append(this.segValuesSpan))
-            .append($('<td>').addClass("channel-data").append(this.segColourButton));
+            .append($('<td>').addClass("channel-data").append(this.segColourSpan));
             
         this.channel.segmentation.forEach(s => {
             this.addSegmentation(s);
@@ -350,6 +367,30 @@ class ExperimentUI
 
         $("#experiment-info").children().remove();
         $("#experiment-info").append(this.expTable);
+
+        this.experiment.channels.forEach(c => {
+            let num = c.channelNumber;
+
+            //$(`.channel-${num}`).val('rgb(33, 147, 58)');
+
+            $(`.channel-${num}`).minicolors({
+                inline: false,
+                control: 'hue',        
+                opacity: true,
+                position: 'top right',
+                change: function(hex, opacity) {
+                  var log;
+                  try {
+                    log = hex ? hex : 'transparent';
+                    if( opacity ) log += ', ' + opacity;
+                    console.log(log);
+                  } catch(e) {}
+                },
+                theme: 'default'
+            });
+        })
+       
+
     }
 
 }

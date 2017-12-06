@@ -36,8 +36,6 @@ body {
     text-align: right;
 }
 
-
-
 #file-selector {
     display: flex;
     flex-direction: column;
