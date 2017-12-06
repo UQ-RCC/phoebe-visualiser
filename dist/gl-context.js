@@ -135,6 +135,8 @@ class GLContext {
             this.canvas.height = this.height;
             this.gl.viewport(0, 0, this.width, this.height); // Change to this...
             this.drawScene("GLContext::resize");
+            console.log(`  TGL client: ${this.canvas.clientWidth} x ${this.canvas.clientHeight}`);
+            console.log(`  TGL canvas: ${this.canvas.width} x ${this.canvas.height}`);
         }
     }
     drawScene(from) {

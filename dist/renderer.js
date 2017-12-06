@@ -8,6 +8,7 @@ const event_managers_1 = require("./event-managers");
 const gl_context_1 = require("./gl-context");
 const frame_buffer_1 = require("./frame-buffer");
 const $ = require("jquery");
+var miniColors = require("../node_modules/@claviska/jquery-minicolors/jquery.minicolors.js");
 let ioPool = new ute.IOPool(5, ute.DummyGetter);
 let dbIO = db.DBIO.getInstance();
 let dir = '20151201_Stow/TimeLapse1_minusLPS_Rab13JF646/matlab_decon/raw_files';
@@ -17,7 +18,28 @@ $(document).ready(() => {
     console.log(`Electron Version: ${process.versions.electron}`);
     popTree();
     navControl.createNavigator();
-    //$("#global-app").keydown((e: JQuery.Event) => {console.log(`global key down "${e.which}"`);});
+    $("#col-pick").minicolors({
+        inline: true,
+        control: 'hue',
+        //defaultValue: $(this).attr('data-defaultValue') || '',
+        //format: $(this).attr('data-format') || 'hex',
+        //keywords: $(this).attr('data-keywords') || '',        
+        //letterCase: $(this).attr('data-letterCase') || 'lowercase',
+        opacity: true,
+        //position: $(this).attr('data-position') || 'bottom left',
+        //swatches: $(this).attr('data-swatches') ? $(this).attr('data-swatches').split('|') : [],
+        change: function (hex, opacity) {
+            var log;
+            try {
+                log = hex ? hex : 'transparent';
+                if (opacity)
+                    log += ', ' + opacity;
+                console.log(log);
+            }
+            catch (e) { }
+        },
+        theme: 'default'
+    });
 });
 function popTree() {
     dbIO.getTree(exports.cachePath).then(data => {
@@ -128,18 +150,17 @@ class SegmentationUI {
 exports.SegmentationUI = SegmentationUI;
 class ChannelUI {
     constructor(c, sc) {
-        // DOM elements
-        this.channelDiv = $(`<div>`).addClass("channel");
-        this.segSpan = $(`<span>`);
+        // DOM elements    
         this.segAddButton = $(`<i>`).addClass("fa fa-plus-circle");
         this.segLabelSpan = $(`<span>`);
         this.segInput = $(`<input type="number">`).addClass("seg-input-value");
-        this.segValuesSpan = $("<span>"); //.data("channel", channel.name).data("directory", record.directory);
+        this.segValuesSpan = $("<span>");
+        this.segColourButton = $(`<i>`).addClass("fa fa-circle");
+        this.channelRow = $('<tr>').addClass("channel-row");
         this.segmentationUI = [];
         this.setController = sc;
         this.channel = c;
-        this.segSpan.attr('channel', this.channel.name);
-        this.segLabelSpan.append(" " + this.channel.name + " ");
+        this.segLabelSpan.append(this.channel.name);
         this.segInput.width(0).hide();
         this.segInput.focusout(() => { this.segInput.hide().width(0); });
         this.segInput.keypress((event) => {
@@ -161,11 +182,11 @@ class ChannelUI {
             this.segInput.animate({ "width": "50px" }, "fast");
             this.segInput.focus();
         });
-        this.segSpan.append(this.segAddButton); //TODO fluent this up
-        this.segSpan.append(this.segLabelSpan);
-        this.segSpan.append(this.segInput);
-        this.segSpan.append(this.segValuesSpan);
-        this.channelDiv.append(this.segSpan);
+        this.channelRow
+            .append($('<td>').addClass("channel-data").append(this.segAddButton))
+            .append($('<td>').addClass("channel-data").append(this.segLabelSpan))
+            .append($('<td>').addClass("channel-value-data").append(this.segInput).append(this.segValuesSpan))
+            .append($('<td>').addClass("channel-data").append(this.segColourButton));
         this.channel.segmentation.forEach(s => {
             this.addSegmentation(s);
         });
@@ -173,8 +194,8 @@ class ChannelUI {
     getSetController() {
         return this.setController;
     }
-    getChannelDiv() {
-        return this.channelDiv;
+    getChannelRow() {
+        return this.channelRow;
     }
     addSegmentation(s) {
         let segUI = new SegmentationUI(s, this);
@@ -207,6 +228,20 @@ class ChannelUI {
         this.setController.segmentationActivated(s, a);
     }
 }
+class ExperimentUI {
+    constructor(experiment, setController) {
+        this.expTable = $('<table>');
+        this.channelUIs = [];
+        this.experiment = experiment;
+        this.experiment.channels.forEach(c => {
+            let channelUI = new ChannelUI(c, setController);
+            this.expTable.append(channelUI.getChannelRow());
+            this.channelUIs.push(channelUI);
+        });
+        $("#experiment-info").children().remove();
+        $("#experiment-info").append(this.expTable);
+    }
+}
 class SetController {
     constructor(frameBuffer) {
         this.channelUIs = [];
@@ -229,10 +264,11 @@ class SetController {
         let channelListDiv = $("#channel-info");
         //TODO clean up old channelUIs (keeps growing).
         experiment.channels.forEach(channel => {
-            let channelUI = new ChannelUI(channel, this);
-            this.channelUIs.push(channelUI);
-            channelListDiv.append(channelUI.getChannelDiv());
+            //let channelUI: ChannelUI = new ChannelUI(channel, this);
+            //this.channelUIs.push(channelUI);
+            //channelListDiv.append(channelUI.getChannelDiv());
         });
+        this.experimentUI = new ExperimentUI(experiment, this);
         gl_context_1.GLContext.getInstance().reinitialiseGLMatrix();
         gl_context_1.GLContext.getInstance().clear();
         this.currentExperiment = experiment;

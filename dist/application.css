@@ -36,17 +36,7 @@ body {
     text-align: right;
 }
 
-#static-content {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-}
 
-#dynamic-content {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-}
 
 #file-selector {
     display: flex;
@@ -54,11 +44,11 @@ body {
     background-color: var(--navigator-colour);
     color: lightyellow;
     overflow-y: hidden;
-    overflow-x: hidden;    
+    overflow-x: hidden;
 }
 
 #channel-info {
-    background-color: brown;
+    background-color: rgb(42, 110, 165);
     align-self: stretch;
     flex-shrink: 0;
 }
@@ -87,12 +77,36 @@ body {
     transition: 5000ms
 }
 
-#canvas {
+#static-content {
     display: flex;
+    min-width: 0;
+    min-height: 0;
+    flex-direction: column;
+    flex: 1;
+}
+
+#dynamic-content {
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+    flex-direction: column;
+    flex: 1;
+}
+
+#canvas {    
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
     flex-direction: column;
     flex-grow: 1;
+    flex-shrink: 1;
     background-color: lightblue;
-    /*width: 600px;*/
+    border: 0;
+}
+
+#timebars {
+    background-color: rgb(0, 0, 0);
     border: 0;
 }
 
@@ -133,12 +147,16 @@ body {
 }
 
 .fa-plus-circle {
-    font-size: 70%
+    font-size: 80%
 }
 
-.channel {
-    padding: 5px
+.fa-circle {
+    font-size: 100%
 }
+
+/* .channel {
+    padding: 5px
+} */
 
 .seg-input-value {
     max-width: 50px;    
@@ -154,6 +172,18 @@ body {
     padding: 1px;
     margin: 3px;
     cursor: pointer
+}
+
+.channel-row {
+    padding: 5px;
+}
+
+.channel-value-data {
+    width: 100%;
+}
+
+.channel-data {
+    padding: 5px;
 }
 
 .segmentation-properties:focus {

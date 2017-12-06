@@ -1,9 +1,11 @@
-﻿
+﻿import { NavController } from './nav-elements';
+
 import { MouseManager } from "./event-managers";
 import { BufferState, BufferPack} from "./frame-buffer";
-import * as glm from "gl-matrix";
-import * as $ from "jquery";
-import * as fs from "fs";
+import * as navControl from './nav-elements';
+import * as glm from 'gl-matrix';
+import * as $ from 'jquery';
+import * as fs from 'fs';
 import { vec3 } from "gl-matrix";
 
 export class LightVector
@@ -130,7 +132,7 @@ export class GLContext
     {
         if (!this.singletonGlContext)
         {
-            this.singletonGlContext = new GLContext();
+            this.singletonGlContext = new GLContext();            
         }
         return this.singletonGlContext;
     }
@@ -206,9 +208,10 @@ export class GLContext
 
     resize(): void
     {
+        
         if ((this.width !== this.canvas.clientWidth) || (this.height !== this.canvas.clientHeight))
         {
-
+            
             this.width = this.canvas.clientWidth;
             this.height = this.canvas.clientHeight;
             this.horizAspect = this.height / this.width;
@@ -216,6 +219,10 @@ export class GLContext
             this.canvas.height = this.height;
             this.gl.viewport(0, 0, this.width, this.height); // Change to this...
             this.drawScene("GLContext::resize");
+
+            console.log(`  TGL client: ${this.canvas.clientWidth} x ${this.canvas.clientHeight}`);
+            console.log(`  TGL canvas: ${this.canvas.width} x ${this.canvas.height}`);
+
         }
         
     }
@@ -336,3 +343,4 @@ export class GLContext
     }
 
 }
+

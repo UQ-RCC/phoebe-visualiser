@@ -14,6 +14,9 @@ function createNavigator() {
 }
 exports.createNavigator = createNavigator;
 class NavController {
+    constructor() {
+        this.resizeables = [];
+    }
     activateElement(newElement) {
         if (this.currentElement) {
             this.currentElement.off();
@@ -27,6 +30,12 @@ class NavController {
         else {
             throw new Error("NavController state is messed up");
         }
+    }
+    addResizable(resizable) {
+        this.resizeables.push(resizable);
+    }
+    resize() {
+        this.resizeables.forEach(r => { r.resize(); });
     }
 }
 exports.NavController = NavController;
@@ -58,11 +67,12 @@ exports.NavElement = NavElement;
 class ChooseFile extends NavElement {
     processOn() {
         $("#file-button").addClass("ap-icon-selected");
-        $("#file-selector").animate({ "max-width": "100%", "padding-right": "15px" }, "fast");
+        //$("#file-selector").animate({ "max-width": "100%", "padding-right": "15px" }, "fast");
+        $("#file-selector").animate({ "max-width": "350px", "min-width": "250px", "padding-right": "15px" }, "fast");
     }
     processOff() {
         $("#file-button").removeClass("ap-icon-selected");
-        $("#file-selector").animate({ "max-width": "0px", "padding-right": "0px" }, "fast");
+        $("#file-selector").animate({ "max-width": "0px", "min-width": "0px", "padding-right": "0px" }, "fast");
     }
 }
 exports.ChooseFile = ChooseFile;

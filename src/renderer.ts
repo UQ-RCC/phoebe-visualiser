@@ -24,6 +24,8 @@ import * as path from 'path';
 import { log } from 'util';
 import { LOADIPHLPAPI } from 'dns';
 
+var miniColors = require("../node_modules/@claviska/jquery-minicolors/jquery.minicolors.js");
+
 let ioPool = new ute.IOPool(5, ute.DummyGetter);
 let dbIO = db.DBIO.getInstance();
 let dir = '20151201_Stow/TimeLapse1_minusLPS_Rab13JF646/matlab_decon/raw_files';
@@ -35,7 +37,28 @@ $(document).ready(() =>
     console.log(`Electron Version: ${process.versions.electron}`);
     popTree();
     navControl.createNavigator();
-    //$("#global-app").keydown((e: JQuery.Event) => {console.log(`global key down "${e.which}"`);});
+    
+    $("#col-pick").minicolors({
+        inline: true,
+        control: 'hue',
+        //defaultValue: $(this).attr('data-defaultValue') || '',
+        //format: $(this).attr('data-format') || 'hex',
+        //keywords: $(this).attr('data-keywords') || '',        
+        //letterCase: $(this).attr('data-letterCase') || 'lowercase',
+        opacity: true,
+        //position: $(this).attr('data-position') || 'bottom left',
+        //swatches: $(this).attr('data-swatches') ? $(this).attr('data-swatches').split('|') : [],
+        change: function(hex, opacity) {
+          var log;
+          try {
+            log = hex ? hex : 'transparent';
+            if( opacity ) log += ', ' + opacity;
+            console.log(log);
+          } catch(e) {}
+        },
+        theme: 'default'
+      });
+
 });
 
 function popTree(): void
@@ -193,24 +216,24 @@ export class SegmentationUI
 
 class ChannelUI
 {
-    // DOM elements
-    private channelDiv: JQuery = $(`<div>`).addClass("channel");
-    private segSpan: JQuery = $(`<span>`);
+    // DOM elements    
     private segAddButton: JQuery = $(`<i>`).addClass("fa fa-plus-circle");
     private segLabelSpan: JQuery = $(`<span>`);
     private segInput: JQuery = $(`<input type="number">`).addClass("seg-input-value");
-    private segValuesSpan: JQuery = $("<span>"); //.data("channel", channel.name).data("directory", record.directory);
+    private segValuesSpan: JQuery = $("<span>");
+    private segColourButton: JQuery = $(`<i>`).addClass("fa fa-circle");
+
+    private channelRow: JQuery = $('<tr>').addClass("channel-row");
 
     private setController: SetController;
-    private segmentationUI: SegmentationUI[] = [];
+    private segmentationUI: SegmentationUI[] = [];s
     private channel: Channel
 
     constructor(c: Channel, sc: SetController)
     {        
         this.setController = sc;
-        this.channel = c;
-        this.segSpan.attr('channel', this.channel.name);
-        this.segLabelSpan.append(" " + this.channel.name + " ");
+        this.channel = c;        
+        this.segLabelSpan.append(this.channel.name);
 
         this.segInput.width(0).hide();
         this.segInput.focusout(() => { this.segInput.hide().width(0); });
@@ -225,7 +248,7 @@ class ChannelUI
                     let i = this.segmentationUI.map(sui => sui.getSegmentation().value).indexOf(newVal);
                     if (i == -1)
                     {
-                        let segmentation = this.channel.addNewSegmentation({id: null, value: this.segInput.val() as number});       
+                        let segmentation = this.channel.addNewSegmentation({id: null, value: this.segInput.val() as number});
                         this.addSegmentation(segmentation);
                     }
                     this.segInput.val("");
@@ -240,12 +263,12 @@ class ChannelUI
             this.segInput.focus();
         });
 
-        this.segSpan.append(this.segAddButton); //TODO fluent this up
-        this.segSpan.append(this.segLabelSpan);
-        this.segSpan.append(this.segInput);
-        this.segSpan.append(this.segValuesSpan);
-        this.channelDiv.append(this.segSpan);
-
+        this.channelRow
+            .append($('<td>').addClass("channel-data").append(this.segAddButton))
+            .append($('<td>').addClass("channel-data").append(this.segLabelSpan))
+            .append($('<td>').addClass("channel-value-data").append(this.segInput).append(this.segValuesSpan))
+            .append($('<td>').addClass("channel-data").append(this.segColourButton));
+            
         this.channel.segmentation.forEach(s => {
             this.addSegmentation(s);
         })
@@ -257,9 +280,9 @@ class ChannelUI
         return this.setController;
     }
 
-    getChannelDiv(): JQuery
+    getChannelRow(): JQuery
     {
-        return this.channelDiv;
+        return this.channelRow;
     }
 
     addSegmentation(s: Segmentation)
@@ -308,6 +331,29 @@ class ChannelUI
 
 }
 
+class ExperimentUI
+{
+    private experiment: Experiment
+    private channelTable: HTMLTableElement;
+    private expTable: JQuery = $('<table>');
+    private channelUIs: ChannelUI[] = [];
+
+    constructor(experiment: Experiment, setController: SetController)
+    {
+        this.experiment = experiment;
+        this.experiment.channels.forEach(c =>
+        {           
+            let channelUI: ChannelUI = new ChannelUI(c, setController);
+            this.expTable.append(channelUI.getChannelRow());
+            this.channelUIs.push(channelUI);
+        });
+
+        $("#experiment-info").children().remove();
+        $("#experiment-info").append(this.expTable);
+    }
+
+}
+
 export class SetController
 {
     private frames: number;
@@ -315,6 +361,7 @@ export class SetController
     private frameBuffer: FrameBuffer;
     private channelUIs: ChannelUI[] = [];
     private currentExperiment: Experiment;
+    private experimentUI: ExperimentUI;
     
     constructor(frameBuffer: FrameBuffer)
     {
@@ -335,20 +382,22 @@ export class SetController
 
         this.defaultTimeBar.reset();
         let experiment = this.frameBuffer.setActiveExperiment(record);
-        this.frames = experiment.frames;        
+        this.frames = experiment.frames;
         $("#frames").text(`${this.frames}`);
         let channels = experiment.channels;
-        $(".channel").remove();        
+        $(".channel").remove(); 
         let channelListDiv: JQuery = $("#channel-info");
         
         //TODO clean up old channelUIs (keeps growing).
         experiment.channels.forEach(channel => 
         {
-            let channelUI: ChannelUI = new ChannelUI(channel, this);
-            this.channelUIs.push(channelUI);
-            channelListDiv.append(channelUI.getChannelDiv());
+            //let channelUI: ChannelUI = new ChannelUI(channel, this);
+            //this.channelUIs.push(channelUI);
+            //channelListDiv.append(channelUI.getChannelDiv());
         });
 
+        this.experimentUI = new ExperimentUI(experiment, this);
+        
         GLContext.getInstance().reinitialiseGLMatrix();
         GLContext.getInstance().clear();
         this.currentExperiment = experiment;

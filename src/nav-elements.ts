@@ -17,6 +17,7 @@ export class NavController
 {
 
     private currentElement: NavElement;
+    private resizeables: any[] = []
 
     activateElement(newElement: NavElement): void
     {
@@ -37,6 +38,16 @@ export class NavController
         {
             throw new Error("NavController state is messed up");
         }
+    }
+
+    addResizable(resizable: any): void
+    {
+        this.resizeables.push(resizable);
+    }
+
+    private resize(): void
+    {
+        this.resizeables.forEach(r => {r.resize()});
     }
 
 }
@@ -87,13 +98,14 @@ export class ChooseFile extends NavElement
     processOn(): void
     {
         $("#file-button").addClass("ap-icon-selected");
-        $("#file-selector").animate({ "max-width": "100%", "padding-right": "15px" }, "fast");
+        //$("#file-selector").animate({ "max-width": "100%", "padding-right": "15px" }, "fast");
+        $("#file-selector").animate({ "max-width": "350px", "min-width": "250px", "padding-right": "15px" }, "fast");
     }
 
     processOff(): void
     {
         $("#file-button").removeClass("ap-icon-selected");
-        $("#file-selector").animate({ "max-width": "0px", "padding-right": "0px" }, "fast");
+        $("#file-selector").animate({ "max-width": "0px", "min-width": "0px", "padding-right": "0px" }, "fast");
     }
 
 }

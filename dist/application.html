@@ -6,8 +6,10 @@
     <title>Phoebe</title>    
     <!-- <script src="bundle.js"></script> -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../node_modules/@claviska/jquery-minicolors/jquery.minicolors.css">
     <link rel="stylesheet" href="style.min.css" />
     <link rel="stylesheet" href="application.css" title="application" />
+
 </head>
 
 <script id="shader-vs" type="x-shader/x-vertex">
@@ -76,24 +78,25 @@
 <div id="file-selector" class="ap-closed">
     <div id="nav-tree"></div>
     <div id="channel-info">
-        frames: <span id="frames"></span>
-        frame: <span id="frame"></span>
+        frame: <span id="frame"></span> / <span id="frames"></span></br>
         status: <span id="frame-status"></span>
     </div>
+    <div id="experiment-info"></div>
 </div>
 
 <div id="process" class="ap-closed">    
     <div>lvec:<span id="debug-lvec"></div>
     <div>mouse:<span id="debug-mouse"></div>
     <div>canvas:<span id="debug-canvas"></span></div>
+    <div><span id="col-pick"></span></div>
     
 </div>
     
 <div id="static-content">
     
-    <div id="menu-bar">
+    <!-- <div id="menu-bar">
         <span id="file-name"></span>
-    </div>
+    </div> -->
 
     <div id="dynamic-content">
         <canvas id="canvas"></canvas>
