@@ -377,7 +377,8 @@ class ExperimentUI
                 opacity: true,
                 position: 'top right',
                 format: 'rgb',
-                change: (rgb, opacity) => {                    
+                change: (rgb, opacity) => {
+                    console.log(`${rgb}`);
                     c.setColour(rgb);
                 },
                 theme: 'default'
