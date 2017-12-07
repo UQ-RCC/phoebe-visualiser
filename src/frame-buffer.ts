@@ -1,6 +1,7 @@
+import { GLContext } from './gl-context';
 import * as fs from 'fs';
 import * as $ from 'jquery';
-import * as jss from "json-stringify-safe";
+import * as jss from 'json-stringify-safe';
 import { log } from 'util';
 import { TimeBar } from './event-managers';
 import { cachePath } from './renderer';
@@ -8,6 +9,7 @@ import { DBIO } from './database';
 import { SegmentationUI } from './renderer';
 import * as ute from './utilities';
 import { CLIENT_RENEG_LIMIT } from 'tls';
+import * as glm from 'gl-matrix';
 
 export const enum GlobalStatus
 {
@@ -65,6 +67,8 @@ export class BufferPack
     yMag: number;
     zMag: number;
 
+
+
     // IO stuff
 
     state: BufferState;
@@ -72,12 +76,29 @@ export class BufferPack
     nextBufferPack: BufferPack | null;
     fileName: string | null;
 
+    segmentation: Segmentation;
+
     constructor(frameNumber: number, fileName: string | null)
     {
         this.frameNumber = frameNumber;
         this.nextBufferPack = null;
         this.fileName = fileName;
         this.state = BufferState.empty;
+    }
+
+    setSegmentation(s: Segmentation)
+    {
+        this.segmentation = s;
+    }
+
+    getColour(): glm.vec4
+    {
+        let colour: glm.vec4 = glm.vec4.fromValues(0.3, 0.3, 0.3, 1.0);
+        if (this.segmentation)
+        {
+            glm.vec4.copy(colour, this.segmentation.channel.getColour());
+        }
+        return colour;
     }
 
     setNextBufferPack(bufferPack: BufferPack) {
@@ -522,7 +543,20 @@ export class Channel
         this.colour[1] = +parseString[1] / 255;
         this.colour[2] = +parseString[2] / 255;
         this.colour[3] = +parseString[3];
-        console.log(`ca: ${this.colour}`);
+
+        GLContext.getInstance().drawScene("Channel::SetColour");
+        
+        // let i = this.segmentation.map(s => s.isActive).findIndex(v => {return v === true});
+        // if (i > -1)
+        // {
+        //     console.log(`active channel`);
+        // }
+
+    }
+
+    getColour(): number[]
+    {
+        return this.colour;
     }
 
 }

@@ -234,7 +234,10 @@ export class GLContext
             
             const tempColour: glm.vec4 = glm.vec4.fromValues(1,0,0,1);
             
-            this.setMatrixUniforms(mPerspective, this.glMatrix.getWorldTransform(), this.lightVector.getLightVector(), tempColour); //<-- Set uniforms here.
+
+            const chanColour: glm.vec4 = this.currentBufferPack.getColour();
+            
+            this.setMatrixUniforms(mPerspective, this.glMatrix.getWorldTransform(), this.lightVector.getLightVector(), chanColour); //<-- Set uniforms here.
             
             this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayBufferId);
             this.gl.vertexAttribPointer(this.vertexPositionAttribute, 3, this.gl.FLOAT, false, 0, 0);

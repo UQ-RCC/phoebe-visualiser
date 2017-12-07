@@ -291,6 +291,7 @@ class TimeBar {
         let frame = this.defaultSegmentation.frames[this.currentValue];
         if (frame.bufferState == "loaded" /* loaded */) {
             let bufferPack = new frame_buffer_1.BufferPack(this.currentValue, frame.filename);
+            bufferPack.setSegmentation(this.defaultSegmentation);
             bufferPack.loadBufferPack();
             gl_context_1.GLContext.getInstance().setBufferPack(bufferPack);
         }

@@ -474,6 +474,7 @@ export class TimeBar {
         if (frame.bufferState == BufferState.loaded)
         {
             let bufferPack: BufferPack = new BufferPack(this.currentValue, frame.filename);
+            bufferPack.setSegmentation(this.defaultSegmentation);
             bufferPack.loadBufferPack();
             GLContext.getInstance().setBufferPack(bufferPack);
         }

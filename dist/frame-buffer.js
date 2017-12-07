@@ -1,9 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const gl_context_1 = require("./gl-context");
 const fs = require("fs");
 const renderer_1 = require("./renderer");
 const database_1 = require("./database");
 const ute = require("./utilities");
+const glm = require("gl-matrix");
 //Used int OpenGL context
 class BufferPack {
     constructor(frameNumber, fileName) {
@@ -14,6 +16,16 @@ class BufferPack {
         this.nextBufferPack = null;
         this.fileName = fileName;
         this.state = "empty" /* empty */;
+    }
+    setSegmentation(s) {
+        this.segmentation = s;
+    }
+    getColour() {
+        let colour = glm.vec4.fromValues(0.3, 0.3, 0.3, 1.0);
+        if (this.segmentation) {
+            glm.vec4.copy(colour, this.segmentation.channel.getColour());
+        }
+        return colour;
     }
     setNextBufferPack(bufferPack) {
         this.nextBufferPack = bufferPack;
@@ -307,7 +319,15 @@ class Channel {
         this.colour[1] = +parseString[1] / 255;
         this.colour[2] = +parseString[2] / 255;
         this.colour[3] = +parseString[3];
-        console.log(`ca: ${this.colour}`);
+        gl_context_1.GLContext.getInstance().drawScene("Channel::SetColour");
+        // let i = this.segmentation.map(s => s.isActive).findIndex(v => {return v === true});
+        // if (i > -1)
+        // {
+        //     console.log(`active channel`);
+        // }
+    }
+    getColour() {
+        return this.colour;
     }
 }
 exports.Channel = Channel;

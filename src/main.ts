@@ -1,10 +1,8 @@
+import { Segmentation } from './frame-buffer';
 import * as electron from 'electron';
 import * as path from 'path';
 import * as url from 'url';
-// import * as ute from './utilities'
-// import * as localServer from './server'
-
-// localServer.createLocalServer();
+import * as glm from 'gl-matrix';
 
 const app = electron.app;
 const browserWindow = electron.BrowserWindow;
@@ -100,124 +98,137 @@ const enum BufferState {
     loading = "loading"
 }
 
-import * as ute from "./utilities";
+import * as ute from './utilities';
 import { log } from 'util';
 
-class BufferPack
-{
+// class BufferPack
+// {
     
-    arrayBuffer: ArrayBuffer;
-    indexBuffer: ArrayBuffer;
-    numPoints: number = 0;
-    numIndices: number = 0;
-    b: number[] = [];
-    xMag: number;
-    yMag: number;
-    zMag: number;
+//     arrayBuffer: ArrayBuffer;
+//     indexBuffer: ArrayBuffer;
+//     numPoints: number = 0;
+//     numIndices: number = 0;
+//     b: number[] = [];
+//     xMag: number;
+//     yMag: number;
+//     zMag: number;
 
-    // IO stuff
+//     segmentation: Segmentation;
 
-    state: BufferState;
-    frameNumber: number;
-    nextBufferPack: BufferPack | null;
-    fileName: string | null;
+//     // IO stuff
 
-    constructor(frameNumber: number, fileName: string | null) {
-        this.frameNumber = frameNumber;
-        this.nextBufferPack = null;
-        this.fileName = fileName;
-        this.state = BufferState.empty;        
-    }
+//     state: BufferState;
+//     frameNumber: number;
+//     nextBufferPack: BufferPack | null;
+//     fileName: string | null;
 
-    setNextBufferPack(bufferPack: BufferPack) {
-        this.nextBufferPack = bufferPack;
-    }
+//     constructor(frameNumber: number, fileName: string | null) {
+//         this.frameNumber = frameNumber;
+//         this.nextBufferPack = null;
+//         this.fileName = fileName;
+//         this.state = BufferState.empty;        
+//     }
 
-    loadBufferPack(): void
-    {        
-        let buffer: Buffer = fs.readFileSync(`${cachePath}/${this.fileName}`);
-        this.setArrayBuffer(buffer.buffer);
-    }
+//     setSegmentation(s: Segmentation)
+//     {
+//         this.segmentation = s;
+//     }
 
-    setArrayBuffer(inputBuffer: ArrayBuffer) {
-        this.arrayBuffer = inputBuffer;
+//     getColor(): glm.vec4
+//     {
+//         let colour: glm.vec4 = glm.vec4.fromValues(0.3, 0.3, 0.3, 1.0);
+//         return colour;        
+//     }
 
-        let dView: DataView = new DataView(this.arrayBuffer);
-        this.numPoints = dView.getInt32(0, true);
-        this.numIndices = dView.getInt32(4, true);
+//     setNextBufferPack(bufferPack: BufferPack) {
+//         this.nextBufferPack = bufferPack;
+//     }
 
-        for (let i = 0; i < 6; i++) {
-            this.b.push(dView.getFloat64(8 + (i * 8), true));
-        }
+//     loadBufferPack(): void
+//     {        
+//         let buffer: Buffer = fs.readFileSync(`${cachePath}/${this.fileName}`);
+//         this.setArrayBuffer(buffer.buffer);
+//     }
 
-        this.xMag = this.b[1] - this.b[0];
-        this.yMag = this.b[3] - this.b[2];
-        this.zMag = this.b[5] - this.b[4];
+//     setArrayBuffer(inputBuffer: ArrayBuffer) {
+//         this.arrayBuffer = inputBuffer;
 
-        var startIndices: number = 56 + (4 * this.numPoints * 3 * 2);
-        //TODO: Don't use slice... present whole buffer to WebGL
-        this.indexBuffer = this.arrayBuffer.slice(startIndices);
-        this.arrayBuffer = this.arrayBuffer.slice(56, 56 + (4 * this.numPoints * 3 * 2));
+//         let dView: DataView = new DataView(this.arrayBuffer);
+//         this.numPoints = dView.getInt32(0, true);
+//         this.numIndices = dView.getInt32(4, true);
 
-        this.state = BufferState.loaded;
-        console.log(`buffer: ${this.toString()}`);
+//         for (let i = 0; i < 6; i++) {
+//             this.b.push(dView.getFloat64(8 + (i * 8), true));
+//         }
 
-    }
+//         this.xMag = this.b[1] - this.b[0];
+//         this.yMag = this.b[3] - this.b[2];
+//         this.zMag = this.b[5] - this.b[4];
 
-    getSize(): number {
-        if (!this.arrayBuffer) {
-            return 0;
-        }
-        return this.arrayBuffer.byteLength + this.indexBuffer.byteLength;
-    }
+//         var startIndices: number = 56 + (4 * this.numPoints * 3 * 2);
+//         //TODO: Don't use slice... present whole buffer to WebGL
+//         this.indexBuffer = this.arrayBuffer.slice(startIndices);
+//         this.arrayBuffer = this.arrayBuffer.slice(56, 56 + (4 * this.numPoints * 3 * 2));
 
-    clearBuffer(): number {
-        const size: number = this.getSize();
-        this.arrayBuffer = null;
-        this.indexBuffer = null;
-        this.state = BufferState.empty;
-        return size;
-    }
+//         this.state = BufferState.loaded;
+//         console.log(`buffer: ${this.toString()}`);
 
-    toString(): string {
-        return `bufferPack ${this.frameNumber}: ${this.state} [${this.xMag},${this.yMag},${this.zMag}] ${this.numIndices}`;
-    }
+//     }
 
-    printDeepString(): void
-    {
+//     getSize(): number {
+//         if (!this.arrayBuffer) {
+//             return 0;
+//         }
+//         return this.arrayBuffer.byteLength + this.indexBuffer.byteLength;
+//     }
 
-        let iView = new DataView(this.indexBuffer);
-        let pView = new DataView(this.arrayBuffer);
+//     clearBuffer(): number {
+//         const size: number = this.getSize();
+//         this.arrayBuffer = null;
+//         this.indexBuffer = null;
+//         this.state = BufferState.empty;
+//         return size;
+//     }
 
-        let debug: any = {};    
-        debug.numIndices = ute.numTo(this.numIndices);
-        debug.byteIndices = ute.numTo(this.indexBuffer.byteLength);
-        debug.numPoints = ute.numTo(this.numPoints);
-        debug.byteArray = ute.numTo(this.arrayBuffer.byteLength);
-        debug.indices = [];
-        debug.buffIndices = [];
+//     toString(): string {
+//         return `bufferPack ${this.frameNumber}: ${this.state} [${this.xMag},${this.yMag},${this.zMag}] ${this.numIndices}`;
+//     }
 
-        for (let i = 0; i < 30; i++)
-        {
-            debug.indices.push(ute.numTo(iView.getInt32(i * 4, true)));
-        }
+//     printDeepString(): void
+//     {
 
-        let foo: Buffer = new Buffer(this.indexBuffer);
-        for (let i = 0; i < 30; i++)
-        {
-            debug.buffIndices.push(ute.numTo(foo.readInt32LE(i * 4)));
-        }
+//         let iView = new DataView(this.indexBuffer);
+//         let pView = new DataView(this.arrayBuffer);
 
-        debug.points = [];
-        for (let i = 0; i < 27; i++)
-        {
-            debug.points.push(pView.getFloat32(i * 4, true));
-        }
+//         let debug: any = {};    
+//         debug.numIndices = ute.numTo(this.numIndices);
+//         debug.byteIndices = ute.numTo(this.indexBuffer.byteLength);
+//         debug.numPoints = ute.numTo(this.numPoints);
+//         debug.byteArray = ute.numTo(this.arrayBuffer.byteLength);
+//         debug.indices = [];
+//         debug.buffIndices = [];
+
+//         for (let i = 0; i < 30; i++)
+//         {
+//             debug.indices.push(ute.numTo(iView.getInt32(i * 4, true)));
+//         }
+
+//         let foo: Buffer = new Buffer(this.indexBuffer);
+//         for (let i = 0; i < 30; i++)
+//         {
+//             debug.buffIndices.push(ute.numTo(foo.readInt32LE(i * 4)));
+//         }
+
+//         debug.points = [];
+//         for (let i = 0; i < 27; i++)
+//         {
+//             debug.points.push(pView.getFloat32(i * 4, true));
+//         }
          
-        console.log(`${JSON.stringify(debug,null,3)}`);
+//         console.log(`${JSON.stringify(debug,null,3)}`);
 
         
-    }
+//     }
     
-}
+// }
 
