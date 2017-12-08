@@ -196,6 +196,7 @@ class ChannelUI {
                 break;
             }
         }
+        this.segColourSpan.val(c.getColourRGB());
         this.channelRow
             .append($('<td>').addClass("channel-data").append(this.segAddButton))
             .append($('<td>').addClass("channel-data").append(this.segLabelSpan))

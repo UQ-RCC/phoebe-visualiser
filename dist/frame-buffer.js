@@ -266,12 +266,15 @@ exports.Segmentation = Segmentation;
 class Channel {
     constructor(experiment, channelRecord) {
         this.currentFrame = 0;
-        this.colour = [0.2, 0.2, 0.2, 1.0];
+        this.colour = [127, 127, 200, 1.0];
         this.segmentation = [];
         this.experiment = experiment;
         this.id = channelRecord.id;
         this.name = channelRecord.name;
         this.channelNumber = channelRecord.channel_number;
+        this.colour[0] = channelRecord.colour_rgb[0];
+        this.colour[1] = channelRecord.colour_rgb[1];
+        this.colour[2] = channelRecord.colour_rgb[2];
         if (channelRecord.segvalues) {
             channelRecord.segvalues.forEach(s => {
                 this.segmentation.push(new Segmentation(this, s));
@@ -315,19 +318,17 @@ class Channel {
     }
     setColour(rgbaString) {
         let parseString = rgbaString.match(/[0-9]*\.?([0-9]+)/g);
-        this.colour[0] = +parseString[0] / 255;
-        this.colour[1] = +parseString[1] / 255;
-        this.colour[2] = +parseString[2] / 255;
+        this.colour[0] = +parseString[0];
+        this.colour[1] = +parseString[1];
+        this.colour[2] = +parseString[2];
         this.colour[3] = +parseString[3];
         gl_context_1.GLContext.getInstance().drawScene("Channel::SetColour");
-        // let i = this.segmentation.map(s => s.isActive).findIndex(v => {return v === true});
-        // if (i > -1)
-        // {
-        //     console.log(`active channel`);
-        // }
     }
     getColour() {
-        return this.colour;
+        return glm.vec4.fromValues(this.colour[0] / 255, this.colour[1] / 255, this.colour[2] / 255, this.colour[3]);
+    }
+    getColourRGB() {
+        return `rgb(${this.colour[0]}, ${this.colour[1]}, ${this.colour[2]}`;
     }
 }
 exports.Channel = Channel;

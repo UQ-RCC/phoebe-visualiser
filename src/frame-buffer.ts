@@ -45,6 +45,7 @@ export interface ChannelRecord
     id: number;
     channel_number: number;    
     name: string;
+    colour_rgb: number[];
     segvalues: SegmentationRecord[];
 }
 
@@ -465,7 +466,7 @@ export class Channel
     channelNumber: number;
     segmentation: Segmentation[];
     private currentFrame: number = 0;
-    private colour: number[] = [0.2, 0.2, 0.2, 1.0];
+    private colour: number[] = [127, 127, 200, 1.0];
 
     constructor(experiment: Experiment, channelRecord: ChannelRecord)
     {        
@@ -473,7 +474,10 @@ export class Channel
         this.experiment = experiment;
         this.id = channelRecord.id;
         this.name = channelRecord.name;
-        this.channelNumber = channelRecord.channel_number;        
+        this.channelNumber = channelRecord.channel_number; 
+        this.colour[0] = channelRecord.colour_rgb[0];
+        this.colour[1] = channelRecord.colour_rgb[1];
+        this.colour[2] = channelRecord.colour_rgb[2];
         if (channelRecord.segvalues)
         {
             channelRecord.segvalues.forEach(s => 
@@ -539,25 +543,23 @@ export class Channel
     setColour(rgbaString: string): void
     {
         let parseString = rgbaString.match(/[0-9]*\.?([0-9]+)/g);
-        this.colour[0] = +parseString[0] / 255;
-        this.colour[1] = +parseString[1] / 255;
-        this.colour[2] = +parseString[2] / 255;
+        this.colour[0] = +parseString[0];
+        this.colour[1] = +parseString[1];
+        this.colour[2] = +parseString[2];
         this.colour[3] = +parseString[3];
-
         GLContext.getInstance().drawScene("Channel::SetColour");
         
-        // let i = this.segmentation.map(s => s.isActive).findIndex(v => {return v === true});
-        // if (i > -1)
-        // {
-        //     console.log(`active channel`);
-        // }
-
     }
 
-    getColour(): number[]
+    getColour(): glm.vec4
     {
-        return this.colour;
+        return glm.vec4.fromValues(this.colour[0] / 255, this.colour[1] / 255, this.colour[2] / 255, this.colour[3]);
     }
+
+    getColourRGB(): string
+    {
+        return `rgb(${this.colour[0]}, ${this.colour[1]}, ${this.colour[2]}`;
+    }   
 
 }
 

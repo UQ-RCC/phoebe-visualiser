@@ -230,13 +230,7 @@ export class GLContext
         {
             //TODO near far need to be set depending on scene--this is in the bufferpack as well check
             const mPerspective = glm.mat4.perspective(glm.mat4.create(), 45, this.width / this.height, 10, 3000.0);
-
-            
-            const tempColour: glm.vec4 = glm.vec4.fromValues(1,0,0,1);
-            
-
             const chanColour: glm.vec4 = this.currentBufferPack.getColour();
-            
             this.setMatrixUniforms(mPerspective, this.glMatrix.getWorldTransform(), this.lightVector.getLightVector(), chanColour); //<-- Set uniforms here.
             
             this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayBufferId);
