@@ -208,8 +208,7 @@ export class GLContext
     resize(called: string): void
     {
         if ((this.width !== this.canvas.clientWidth) || (this.height !== this.canvas.clientHeight))
-        {
-            
+        {            
             this.width = this.canvas.clientWidth;
             this.height = this.canvas.clientHeight;
             this.horizAspect = this.height / this.width;
