@@ -22,40 +22,6 @@ function createWindow() {
 }
 app.on('ready', () => {
     console.log('process starting..');
-    /*
-    let buffer: Buffer = fs.readFileSync(`D:/data/electron cache/07/b4/07b41693-1bf6-4f29-b1a3-e4a1cdc5730b`);
-
-    let numPoints = buffer.readInt32LE(0);
-    let numIndices = buffer.readInt32LE(4);
-
-    console.log(`points: ${numPoints}`);
-    console.log(`indices: ${numIndices}`);
-    for (let i = 0; i < 6; i++) {
-        console.log(`${buffer.readDoubleLE(8 + (i * 8))}`);
-    }
-
-    for (let i = 0; i < 30; i += 3)
-    {
-        console.log(`p: ${buffer.readFloatLE(56 + (i * 4))} ${buffer.readFloatLE(56 + ((i + 1) * 4))} ${buffer.readFloatLE(56 + ((i + 2) * 4))}`);
-    }
-
-    let sn: number = 56 + (4 * numPoints * 3);
-    for (let i = 0; i < 30; i += 3)
-    {
-        console.log(`n: ${buffer.readFloatLE(sn + (i * 4))} ${buffer.readFloatLE(sn + ((i + 1) * 4))} ${buffer.readFloatLE(sn + ((i + 2) * 4))}`);
-    }
-
-    let si: number = 56 + (4 * numPoints * 3 * 2);
-    for (let i = 0; i < 30; i += 3)
-    {
-        console.log(`i: ${buffer.readInt32LE(si + (i * 4))} ${buffer.readInt32LE(si + ((i + 1) * 4))} ${buffer.readInt32LE(si + ((i + 2) * 4))}`);
-    }
-
-
-    let bb: BufferPack = new BufferPack(0, '');
-    bb.setArrayBuffer(buffer.buffer);
-    bb.printDeepString();
-    */
     createWindow();
 });
 app.on('window-all-closed', function () {

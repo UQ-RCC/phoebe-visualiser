@@ -6,6 +6,8 @@ import {FrameBuffer} from "./frame-buffer";
 import {SetController} from "./renderer"
 import * as jss from "json-stringify-safe";
 import { ConnectionOptions } from "tls";
+import { WSAESTALE } from "constants";
+import * as $ from 'jquery';
 
 export interface ChannelRecord
 {
@@ -21,19 +23,29 @@ const WebSocket = require("ws");
 export class DBIO
 {
 	private static singletonDBIO: DBIO;
-	readonly pool: pg.Pool;
+	pool: pg.Pool;
 	readonly queryMap: Map<string, string>;
 
-	public static getInstance(): DBIO
+	public static login(username: string, password: string): DBIO
 	{
+		console.log(`db login: ${username} / ${password}`);
 		if (!this.singletonDBIO)
 		{
-			this.singletonDBIO = new DBIO();
+			this.singletonDBIO = new DBIO(username, password);
 		}
 		return this.singletonDBIO;
 	}
 
-	private constructor()
+	public static getInstance(): DBIO
+	{
+		// if (!this.singletonDBIO)
+		// {
+		// 	this.singletonDBIO = new DBIO();
+		// }
+		return this.singletonDBIO;
+	}
+
+	private constructor(username: string, password: string)
 	{
 		this.queryMap = new Map<string, string>();
 
@@ -44,16 +56,35 @@ export class DBIO
 		this.queryMap.set('delete_segmentation', 'select * from delete_segmentation($1)');
 		this.queryMap.set('activate_frame', 'select * from activate_frame($1, $2)');
 		this.queryMap.set('deactivate_frame', 'select * from deactivate_frame($1)');
-		this.pool = new pg.Pool({
-			host: '203.101.226.113',
-			database: 'phoebe',
-			user: 'phoebeuser',
-			password: 'user',
-			max: 10
-		});
 
 		//Warning: We are forcing the db's bigint id types to be ints
 		pg.types.setTypeParser(20, (v: string) => {return parseInt(v)});
+	}
+
+	testConnection(): Promise<boolean>
+	{
+		return new Promise<boolean>((resolve, reject) =>
+		{			
+			this.pool = new pg.Pool({
+				host: '203.101.226.113',
+				database: 'phoebe',			
+				user: $("#fname").val() as string,
+				password: $("#pword").val() as string,
+				max: 10
+			});
+			this.pool.connect((e, client, release) =>
+			{
+				if (e)
+				{					
+					reject(e);
+				}
+				else
+				{
+					client.release();
+					resolve(true);
+				}
+			}
+		}
 	}
 
 	//restReq = {dir/dir/.../dir}/pram1/pramN.../operation

@@ -87,15 +87,22 @@
     <div>lvec:<span id="debug-lvec"></div>
     <div>mouse:<span id="debug-mouse"></div>
     <div>canvas:<span id="debug-canvas"></span></div>
-    <div><span id="col-pick">*</span></div>
-    
+    <div><span id="col-pick">*</span></div>    
 </div>
     
 <div id="static-content">
     
-    <!-- <div id="menu-bar">
-        <span id="file-name"></span>
-    </div> -->
+    <div id="menu-bar">
+        <div id="db-login">
+            user name: <input type="text" id="fname">
+            password: <input type="password" id="pword">
+            <button id="ok-button" value = "OK" type = "button">OK</button>
+        </div>
+        <div id="db-reject" hidden="true">
+            Login failed
+            <button id="fail-button" value = "OK" type = "button">OK</button>
+        </div>>
+    </div>
 
     <div id="dynamic-content">
         <canvas id="canvas"></canvas>

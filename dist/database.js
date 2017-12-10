@@ -2,16 +2,25 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const pg = require("pg");
 const frame_buffer_1 = require("./frame-buffer");
+const $ = require("jquery");
 const WebSocket = require("ws");
 //Gateway to all RESTful database queries
 class DBIO {
-    static getInstance() {
+    static login(username, password) {
+        console.log(`db login: ${username} / ${password}`);
         if (!this.singletonDBIO) {
-            this.singletonDBIO = new DBIO();
+            this.singletonDBIO = new DBIO(username, password);
         }
         return this.singletonDBIO;
     }
-    constructor() {
+    static getInstance() {
+        // if (!this.singletonDBIO)
+        // {
+        // 	this.singletonDBIO = new DBIO();
+        // }
+        return this.singletonDBIO;
+    }
+    constructor(username, password) {
         this.queryMap = new Map();
         this.queryMap.set('operation', 'select * from get_operations($1, $2)');
         this.queryMap.set('tree', 'select * from get_directories($1)');
@@ -20,15 +29,28 @@ class DBIO {
         this.queryMap.set('delete_segmentation', 'select * from delete_segmentation($1)');
         this.queryMap.set('activate_frame', 'select * from activate_frame($1, $2)');
         this.queryMap.set('deactivate_frame', 'select * from deactivate_frame($1)');
-        this.pool = new pg.Pool({
-            host: '203.101.226.113',
-            database: 'phoebe',
-            user: 'phoebeuser',
-            password: 'user',
-            max: 10
-        });
         //Warning: We are forcing the db's bigint id types to be ints
         pg.types.setTypeParser(20, (v) => { return parseInt(v); });
+    }
+    testConnection() {
+        return new Promise((resolve, reject) => {
+            this.pool = new pg.Pool({
+                host: '203.101.226.113',
+                database: 'phoebe',
+                user: $("#fname").val(),
+                password: $("#pword").val(),
+                max: 10
+            });
+            this.pool.connect((e, client, release) => {
+                if (e) {
+                    reject(e);
+                }
+                else {
+                    client.release();
+                    resolve(true);
+                }
+            });
+        });
     }
     //restReq = {dir/dir/.../dir}/pram1/pramN.../operation
     query(restReq) {

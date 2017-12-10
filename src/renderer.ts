@@ -27,34 +27,28 @@ import { LOADIPHLPAPI } from 'dns';
 var miniColors = require("../node_modules/@claviska/jquery-minicolors/jquery.minicolors.js");
 
 let ioPool = new ute.IOPool(5, ute.DummyGetter);
-let dbIO = db.DBIO.getInstance();
+let dbIO: db.DBIO;
 let dir = '20151201_Stow/TimeLapse1_minusLPS_Rab13JF646/matlab_decon/raw_files';
 let treeQuery = 'tree';
 export let cachePath = (config as any).cache;
 
 $(document).ready(() =>
-{    
-    console.log(`Electron Version: ${process.versions.electron}`);
-    popTree();
+{
+    $("#ok-button").click(e => {        
+        dbIO = db.DBIO.login($("#fname").val() as string, $("#pword").val() as string);
+        dbIO.testConnection().then(() => 
+        {
+            $("#menu-bar").hide();
+            popTree();
+            navControl.NavController.getInstance();
+        }).catch((e) => 
+        {
+            $("#db-login").hide();
+            $("#db-reject").show();            
+        })
+    })
 
-    //navControl.createNavigator();
-    navControl.NavController.getInstance();
-    
-    $("#col-pick").minicolors({
-        inline: false,
-        control: 'hue',        
-        opacity: true,
-        position: 'top left',        
-        change: function(hex, opacity) {
-          var log;
-          try {
-            log = hex ? hex : 'transparent';
-            if( opacity ) log += ', ' + opacity;
-            console.log(log);
-          } catch(e) {}
-        },
-        theme: 'default'
-      });
+    $("#fail-button").click(e => {$("#db-login").show(); $("#db-reject").hide();})
 
 });
 
