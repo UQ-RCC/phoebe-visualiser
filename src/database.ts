@@ -25,6 +25,8 @@ export class DBIO
 	private static singletonDBIO: DBIO;
 	pool: pg.Pool;
 	readonly queryMap: Map<string, string>;
+	private userName: string;
+	private password: stromg;
 
 	public static login(username: string, password: string): DBIO
 	{
@@ -63,13 +65,19 @@ export class DBIO
 
 	testConnection(): Promise<boolean>
 	{
+
 		return new Promise<boolean>((resolve, reject) =>
-		{			
+		{
+			this.userName = $("#fname").val() as string;
+			this.password = $("#pword").val() as string;
 			this.pool = new pg.Pool({
-				host: '203.101.226.113',
-				database: 'phoebe',			
-				user: $("#fname").val() as string,
-				password: $("#pword").val() as string,
+				//host: '203.101.226.113',
+				host: 'phoebe.rcc.uq.edu.au',
+				port: 1338,
+				//database: 'phoebe',			
+				database: 'phoebe_prod',
+				user: this.userName,
+				password: this.password,
 				max: 10
 			});
 			this.pool.connect((e, client, release) =>
@@ -252,10 +260,11 @@ export class DBIO
 	dbListen(setController: SetController)
 	{
 		let conn: pg.ClientConfig = {
-			host: '203.101.226.113',
-			database: 'phoebe',
-			user: 'phoebeuser',
-			password: 'user',			
+			host: 'phoebe.rcc.uq.edu.au',
+			database: 'phoebe_prod',
+			port: 1338,
+			user: this.userName,
+			password: this.password,			
 		}
 
 		let pgClient = new pg.Client(conn);
@@ -280,8 +289,6 @@ export class DBIO
 	}
 }
 
-
-
 //TODO this is not picking things up from the pool
 export class SocketIO
 {
@@ -301,10 +308,13 @@ export class SocketIO
 
 
 		let conn: pg.ClientConfig = {
-			host: '203.101.226.113',
-			database: 'phoebe',
+			//host: '203.101.226.113',
+			host: 'phoebe.rcc.uq.edu.au',
+			port: 1338,
+			//database: 'phoebe',
+			database: 'phoebe_prod',
 			user: 'phoebeuser',
-			password: 'user',			
+			password: 'user',
 		}
 
 		this.pgClient = new pg.Client(conn);
@@ -316,6 +326,7 @@ export class SocketIO
 			}
 			else
 			{
+				console.log(`connected to socket`);
 				this.pgClient.query(`listen "proc_status"`, (e: Error) =>
 				{
 					if (e) console.log(`error listening to DB server\n${JSON.stringify(e, null, 3)}`);

@@ -34,11 +34,16 @@ class DBIO {
     }
     testConnection() {
         return new Promise((resolve, reject) => {
+            this.userName = $("#fname").val();
+            this.password = $("#pword").val();
             this.pool = new pg.Pool({
-                host: '203.101.226.113',
-                database: 'phoebe',
-                user: $("#fname").val(),
-                password: $("#pword").val(),
+                //host: '203.101.226.113',
+                host: 'phoebe.rcc.uq.edu.au',
+                port: 1338,
+                //database: 'phoebe',			
+                database: 'phoebe_prod',
+                user: this.userName,
+                password: this.password,
                 max: 10
             });
             this.pool.connect((e, client, release) => {
@@ -174,10 +179,11 @@ class DBIO {
     }
     dbListen(setController) {
         let conn = {
-            host: '203.101.226.113',
-            database: 'phoebe',
-            user: 'phoebeuser',
-            password: 'user',
+            host: 'phoebe.rcc.uq.edu.au',
+            database: 'phoebe_prod',
+            port: 1338,
+            user: this.userName,
+            password: this.password,
         };
         let pgClient = new pg.Client(conn);
         pgClient.connect((e) => {
@@ -207,8 +213,11 @@ class SocketIO {
         // 	webSocket.on('message', (m: ws.Data) => this.onMessage(m, webSocket));
         // });
         let conn = {
-            host: '203.101.226.113',
-            database: 'phoebe',
+            //host: '203.101.226.113',
+            host: 'phoebe.rcc.uq.edu.au',
+            port: 1338,
+            //database: 'phoebe',
+            database: 'phoebe_prod',
             user: 'phoebeuser',
             password: 'user',
         };
@@ -218,6 +227,7 @@ class SocketIO {
                 console.log(`error connecting ${e}`);
             }
             else {
+                console.log(`connected to socket`);
                 this.pgClient.query(`listen "proc_status"`, (e) => {
                     if (e)
                         console.log(`error listening to DB server\n${JSON.stringify(e, null, 3)}`);
