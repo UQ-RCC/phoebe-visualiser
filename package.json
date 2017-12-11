@@ -17,7 +17,8 @@
   "author": "Oliver Cairncross",
   "license": "MIT",
   "devDependencies": {
-    "typescript": "2.6.1"
+    "typescript": "2.6.1",
+    "electron": "^1.8.1"
   },
   "dependencies": {
     "@claviska/jquery-minicolors": "^2.2.6",
@@ -30,7 +31,6 @@
     "@types/pg": "^7.4.1",
     "@types/ws": "^3.2.1",
     "color-string": "^1.5.2",
-    "electron": "^1.8.1",
     "gl-matrix": "^2.4.0",
     "jquery": "*",
     "jstree": "*",
