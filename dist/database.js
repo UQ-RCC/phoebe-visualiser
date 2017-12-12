@@ -7,17 +7,12 @@ const WebSocket = require("ws");
 //Gateway to all RESTful database queries
 class DBIO {
     static login(username, password) {
-        console.log(`db login: ${username} / ${password}`);
         if (!this.singletonDBIO) {
             this.singletonDBIO = new DBIO(username, password);
         }
         return this.singletonDBIO;
     }
     static getInstance() {
-        // if (!this.singletonDBIO)
-        // {
-        // 	this.singletonDBIO = new DBIO();
-        // }
         return this.singletonDBIO;
     }
     constructor(username, password) {
@@ -32,15 +27,14 @@ class DBIO {
         //Warning: We are forcing the db's bigint id types to be ints
         pg.types.setTypeParser(20, (v) => { return parseInt(v); });
     }
+    //TODO clean this mess up...
     testConnection() {
         return new Promise((resolve, reject) => {
             this.userName = $("#fname").val();
             this.password = $("#pword").val();
             this.pool = new pg.Pool({
-                //host: '203.101.226.113',
                 host: 'phoebe.rcc.uq.edu.au',
                 port: 1338,
-                //database: 'phoebe',			
                 database: 'phoebe_prod',
                 user: this.userName,
                 password: this.password,
@@ -237,7 +231,6 @@ class SocketIO {
                     let socket = this.socketMap.get(msgObj.channel_id);
                     if (socket) {
                         socket.send(message.payload);
-                        console.log('message sent on socket');
                     }
                     else {
                         console.log(`no socket found ${msgObj.channel_id}`);

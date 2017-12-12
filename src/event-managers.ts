@@ -378,7 +378,7 @@ export class TimeBar {
         this.canvas.onmousemove = (e: MouseEvent) => { this.mouseMove(e); };
         this.canvas.onmouseup = (e: MouseEvent) => { this.mouseDown = false };
         this.canvas.onmouseleave = (e: MouseEvent) => { this.mouseDown = false };
-        this.canvas.onkeydown = (e: KeyboardEvent) => { console.log(`key: ${e.key}`) };
+        
         
         window.addEventListener("resize", () => { this.resize(); });
         this.resize();
@@ -392,7 +392,7 @@ export class TimeBar {
 
     setFrameCount(frameCount: number): void
     {
-        this.frameCount = frameCount;        
+        this.frameCount = frameCount;
         this.dataSize = this.frameCount - 1;
         this.resize();
     }
@@ -470,7 +470,7 @@ export class TimeBar {
 
     displayCurrentFrame()
     {
-        let frame: Frame = this.defaultSegmentation.frames[this.currentValue];     
+        let frame: Frame = this.defaultSegmentation.frames[this.currentValue];             
         if (frame.bufferState == BufferState.loaded)
         {
             let bufferPack: BufferPack = new BufferPack(this.currentValue, frame.filename);

@@ -23,14 +23,13 @@ const WebSocket = require("ws");
 export class DBIO
 {
 	private static singletonDBIO: DBIO;
-	pool: pg.Pool;
+	private pool: pg.Pool;
 	readonly queryMap: Map<string, string>;
 	private userName: string;
 	private password: stromg;
 
 	public static login(username: string, password: string): DBIO
-	{
-		console.log(`db login: ${username} / ${password}`);
+	{		
 		if (!this.singletonDBIO)
 		{
 			this.singletonDBIO = new DBIO(username, password);
@@ -39,11 +38,7 @@ export class DBIO
 	}
 
 	public static getInstance(): DBIO
-	{
-		// if (!this.singletonDBIO)
-		// {
-		// 	this.singletonDBIO = new DBIO();
-		// }
+	{		
 		return this.singletonDBIO;
 	}
 
@@ -63,18 +58,16 @@ export class DBIO
 		pg.types.setTypeParser(20, (v: string) => {return parseInt(v)});
 	}
 
-	testConnection(): Promise<boolean>
-	{
-
+	//TODO clean this mess up...
+	public testConnection(): Promise<boolean>
+	{		
 		return new Promise<boolean>((resolve, reject) =>
 		{
 			this.userName = $("#fname").val() as string;
 			this.password = $("#pword").val() as string;
-			this.pool = new pg.Pool({
-				//host: '203.101.226.113',
+			this.pool = new pg.Pool({				
 				host: 'phoebe.rcc.uq.edu.au',
-				port: 1338,
-				//database: 'phoebe',			
+				port: 1338,				
 				database: 'phoebe_prod',
 				user: this.userName,
 				password: this.password,
@@ -83,7 +76,7 @@ export class DBIO
 			this.pool.connect((e, client, release) =>
 			{
 				if (e)
-				{					
+				{
 					reject(e);
 				}
 				else
@@ -337,8 +330,7 @@ export class SocketIO
 					let socket: ws = this.socketMap.get(msgObj.channel_id);
 					if (socket)
 					{
-						socket.send(message.payload);
-						console.log('message sent on socket');
+						socket.send(message.payload);						
 					}
 					else
 					{

@@ -217,7 +217,6 @@ class TimeBar {
         this.canvas.onmousemove = (e) => { this.mouseMove(e); };
         this.canvas.onmouseup = (e) => { this.mouseDown = false; };
         this.canvas.onmouseleave = (e) => { this.mouseDown = false; };
-        this.canvas.onkeydown = (e) => { console.log(`key: ${e.key}`); };
         window.addEventListener("resize", () => { this.resize(); });
         this.resize();
         let dynamicDiv = $("#timebars");

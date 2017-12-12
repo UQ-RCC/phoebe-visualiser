@@ -308,7 +308,7 @@ class Channel {
     processDBMessage(message) {
         let segmentationID = message.segmentation_id;
         if (message.status == 'deleted') {
-            console.log(`from db : we are deleting -- do it here`);
+            // console.log(`from db : we are deleting -- do it here`);
         }
         this.segmentation.forEach(s => {
             if (s.id == segmentationID) {
@@ -370,6 +370,9 @@ class XHRLoader {
                 if (ui) {
                     ui.fireChange(this.frame);
                 }
+            }
+            else {
+                this.frame.bufferState = "empty" /* empty */;
             }
             this.xhrPool.returnLoader(this);
         };

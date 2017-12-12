@@ -35,7 +35,6 @@ class NavController {
     }
     addResizable(resizable) {
         this.resizeables.push(resizable);
-        console.log(`added a resizable to NavController`);
     }
     resizeResizables() {
         this.resizeables.forEach(r => {

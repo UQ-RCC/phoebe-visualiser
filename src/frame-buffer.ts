@@ -10,6 +10,7 @@ import { SegmentationUI } from './renderer';
 import * as ute from './utilities';
 import { CLIENT_RENEG_LIMIT } from 'tls';
 import * as glm from 'gl-matrix';
+import { WSAETIMEDOUT } from 'constants';
 
 export const enum GlobalStatus
 {
@@ -408,12 +409,12 @@ export class Segmentation
 
     // Get the next frame to load
     getNextFrame(): Frame | null
-    {
+    {        
         for (let i = this.channel.getCurrentFrame(); i < this.frames.length; i++)
         {
             let frame = this.frames[i];
             if ((frame.bufferState === BufferState.empty) && (frame.status == "complete"))
-            {
+            {   
                 frame.bufferState = BufferState.loading;
                 return frame;
             }
@@ -529,7 +530,7 @@ export class Channel
         let segmentationID = message.segmentation_id;
         if (message.status == 'deleted')
         {
-            console.log(`from db : we are deleting -- do it here`);
+            // console.log(`from db : we are deleting -- do it here`);
         }
         this.segmentation.forEach(s =>
         {            
@@ -587,12 +588,12 @@ export class Experiment
 
     processDBMessage(message: any)
     {        
-        let messageObj: any = JSON.parse(message);
+        let messageObj: any = JSON.parse(message);        
         let channelId = messageObj.channel_id;
         this.channels.forEach(c =>
         {
             if (c.id == channelId)
-            {                
+            {
                 c.processDBMessage(messageObj);
             }
         })
@@ -617,7 +618,7 @@ class XHRLoader
             let inBuffer: ArrayBuffer = this.req.response;
             if (inBuffer)
             {
-                this.frame.bufferState = BufferState.loaded;                
+                this.frame.bufferState = BufferState.loaded;
                 fs.writeFileSync(this.xhrPool.cachePath + "/" + this.frame.filename, Buffer.from(inBuffer));
                 let ui: SegmentationUI = this.frame.segmentation.segmentationUI;
                 if (ui)
@@ -625,13 +626,17 @@ class XHRLoader
                     ui.fireChange(this.frame);
                 }                                
             }
+            else
+            {
+                this.frame.bufferState = BufferState.empty;
+            }
             this.xhrPool.returnLoader(this);
         }
     }
 
     load(frame: Frame)
     {
-        const address = `http://phoebe.rcc.uq.edu.au:1337/${frame.filename}`;        
+        const address = `http://phoebe.rcc.uq.edu.au:1337/${frame.filename}`;
         this.frame = frame;
         this.req.open("GET", address, true);
         this.req.send();

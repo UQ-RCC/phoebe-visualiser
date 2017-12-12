@@ -53,8 +53,7 @@ export class NavController
 
     addResizable(resizable: any): void
     {
-        this.resizeables.push(resizable);
-        console.log(`added a resizable to NavController`);
+        this.resizeables.push(resizable);        
     }
 
     public resizeResizables(): void

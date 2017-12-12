@@ -374,8 +374,7 @@ class ExperimentUI
                 opacity: true,
                 position: 'top right',
                 format: 'rgb',
-                change: (rgb, opacity) => {
-                    console.log(`${rgb}`);
+                change: (rgb, opacity) => {                    
                     c.setColour(rgb);
                 },
                 theme: 'default'
@@ -496,10 +495,8 @@ export class FrameController
         const bufferPack: BufferPack = this.frames[newFrame];
         loadWindow(bufferPack, 10, this);
         if (bufferPack.state === BufferState.loaded)
-        {
-            console.log(`pre draw scene`);
-            this.glContext.drawScene("FrameController::setFrame");
-            console.log(`post draw scene`);
+        {            
+            this.glContext.drawScene("FrameController::setFrame");         
         }
         this.currentFrame = newFrame;
     }

@@ -255,7 +255,6 @@ class ExperimentUI {
                 position: 'top right',
                 format: 'rgb',
                 change: (rgb, opacity) => {
-                    console.log(`${rgb}`);
                     c.setColour(rgb);
                 },
                 theme: 'default'
@@ -340,9 +339,7 @@ class FrameController {
         const bufferPack = this.frames[newFrame];
         loadWindow(bufferPack, 10, this);
         if (bufferPack.state === "loaded" /* loaded */) {
-            console.log(`pre draw scene`);
             this.glContext.drawScene("FrameController::setFrame");
-            console.log(`post draw scene`);
         }
         this.currentFrame = newFrame;
     }
