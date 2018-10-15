@@ -5,7 +5,7 @@
   "description": "Electron WebGL application",
   "main": "main.js",
   "scripts": {
-    "start": "./node_modules/.bin/electron ./dist/main.js",
+    "start": "electron ./dist/main.js",
     "package-win": "electron-packager . phoebe --asar=false --overwrite=true --platform=win32 --arch=x64 --out=release-builds"
   },
   "keywords": [
@@ -37,5 +37,13 @@
     "numeral": "^2.0.6",
     "pg": "*",
     "ws": "^3.3.2"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/UQ-RCC/phoebe-visualiser.git"
+  },
+  "bugs": {
+    "url": "https://github.com/UQ-RCC/phoebe-visualiser/issues"
+  },
+  "homepage": "https://github.com/UQ-RCC/phoebe-visualiser#readme"
 }
