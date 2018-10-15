@@ -50,6 +50,9 @@ function login()
 
 $(document).ready(() =>
 {
+    $("#fname").val("nickc");
+    $("#pword").val("password");
+
     $("#ok-button").click(e => {
         login();
     })

@@ -114,6 +114,12 @@ class GLContext {
         this.setBufferPack(this.currentBufferPack);
     }
     setBufferPack(bufferPack) {
+        if (bufferPack) {
+            console.log(`buffer pack set [${bufferPack.xMag} ${bufferPack.yMag} ${bufferPack.zMag}]`);
+        }
+        else {
+            console.log(`null buffer pack`);
+        }
         this.currentBufferPack = bufferPack;
         if (bufferPack) {
             if (!this.initGLMatrixInitialised) {
@@ -123,6 +129,8 @@ class GLContext {
             this.transferBuffers(this.currentBufferPack);
         }
         this.drawScene("GLContext::setBufferPack");
+    }
+    setTexturePack(texture) {
     }
     clear() {
         this.currentBufferPack = null;

@@ -298,6 +298,8 @@ class TimeBar {
             gl_context_1.GLContext.getInstance().setBufferPack(null);
         }
     }
+    displayCurrentTexture() {
+    }
     resize() {
         this.canvas.width = this.canvas.clientWidth;
         this.canvas.height = this.canvas.clientHeight;

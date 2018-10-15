@@ -119,6 +119,7 @@ export class GLContext
     private normalAttribute: number;
 
     private currentBufferPack: BufferPack;
+    private currentTexture: string
 
     // width and height of viewport and canvas drawing buffer;
     private width: number = 0;
@@ -185,7 +186,15 @@ export class GLContext
     }
 
     setBufferPack(bufferPack: BufferPack): void
-    {        
+    {
+        if (bufferPack)
+        {
+            console.log(`buffer pack set [${bufferPack.xMag} ${bufferPack.yMag} ${bufferPack.zMag}]`);
+        }
+        else
+        {
+            console.log(`null buffer pack`);
+        }
         this.currentBufferPack = bufferPack;        
         if (bufferPack)
         {
@@ -197,6 +206,11 @@ export class GLContext
             this.transferBuffers(this.currentBufferPack);            
         }
         this.drawScene("GLContext::setBufferPack");
+    }
+
+    setTexturePack(texture: String): void
+    {
+
     }
 
     clear(): void

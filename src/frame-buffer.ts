@@ -32,6 +32,7 @@ export interface FrameRecord
 	filename: string;
     status: string;
     id: number;
+    image_filename: string;
 }
 
 export interface ExperimentRecord
@@ -68,8 +69,6 @@ export class BufferPack
     xMag: number;
     yMag: number;
     zMag: number;
-
-
 
     // IO stuff
 
@@ -109,7 +108,7 @@ export class BufferPack
 
     loadBufferPack(): void
     {        
-        let buffer: Buffer = fs.readFileSync(`${cachePath}/${this.fileName}`);     
+        let buffer: Buffer = fs.readFileSync(`${cachePath}/${this.fileName}`);
         this.setArrayBuffer(buffer.buffer);
     }
 
@@ -190,10 +189,11 @@ export class Frame
     segmentation: Segmentation;	
 	bufferState: BufferState = BufferState.empty; // State in local app.
     channel: number;    
-    filename: string;    
+    filename: string; 
     status: string;    
     msec: number;
     id: number;
+    imageFilename: string
     
 	buffer: string; // Is this a buffer status??
 	// bufferPack: BufferPack;
@@ -206,6 +206,7 @@ export class Frame
         this.filename = frameRecord.filename;
         this.status = frameRecord.status;
         this.id = frameRecord.id;
+        this.imageFilename = frameRecord.image_filename;
 	}
 
 	getFilePath(): string
@@ -331,13 +332,15 @@ export class Segmentation
         this.segmentationUI = ui;
     }
 
+    //TODO load frames    
     private addFrames(): void
     {        
         DBIO.getInstance().queryByObject('get_seg_status', this.id.toString())
         .then(res =>
         {
             res.forEach((row) =>
-            {                
+            {
+                console.log(`${JSON.stringify(row)}`);
                 this.frames.push(new Frame(this, row));
             })        
         });

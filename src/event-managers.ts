@@ -484,6 +484,11 @@ export class TimeBar {
         }
     }
 
+    displayCurrentTexture()
+    {
+        
+    }
+
     resize() {
         this.canvas.width = this.canvas.clientWidth;
         this.canvas.height = this.canvas.clientHeight;

@@ -95,6 +95,7 @@ class Frame {
         this.filename = frameRecord.filename;
         this.status = frameRecord.status;
         this.id = frameRecord.id;
+        this.imageFilename = frameRecord.image_filename;
     }
     getFilePath() {
         return this.filename;
@@ -172,10 +173,12 @@ class Segmentation {
     attachUI(ui) {
         this.segmentationUI = ui;
     }
+    //TODO load frames    
     addFrames() {
         database_1.DBIO.getInstance().queryByObject('get_seg_status', this.id.toString())
             .then(res => {
             res.forEach((row) => {
+                console.log(`${JSON.stringify(row)}`);
                 this.frames.push(new Frame(this, row));
             });
         });
