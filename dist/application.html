@@ -27,8 +27,8 @@
 
     void main(void)
     {
-        vNormal = aNormal;
-        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+        vNormal = vec3(aNormal.xy, aNormal.z * 1.5);
+        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition.xy, aVertexPosition.z * 1.5, 1.0);
     }
 </script>
 
@@ -46,7 +46,9 @@
         //apply projection transform
         //vec3 normal = normalize(mat3(uMVMatrix) * mat3(uPMatrix) * vNormal);        
         vec3 normal = normalize(mat3(uMVMatrix) * vNormal);        
-        float diffuseCoefficient = max(0.0, dot(normal, uVLight));
+        //float diffuseCoefficient = max(0.0, dot(normal, uVLight));
+        //do back face rendering...
+        float diffuseCoefficient = abs(dot(normal, uVLight));
         return diffuseCoefficient;
     }
     
