@@ -27,8 +27,7 @@ class DBIO {
         //Warning: We are forcing the db's bigint id types to be ints
         pg.types.setTypeParser(20, (v) => { return parseInt(v); });
     }
-    //TODO clean this mess up...
-    testConnection() {
+    login() {
         return new Promise((resolve, reject) => {
             this.userName = $("#fname").val();
             this.password = $("#pword").val();
@@ -46,6 +45,9 @@ class DBIO {
                 }
                 else {
                     client.release();
+                    client.query('select version();')
+                        .then(res => { console.log(`rows: ${res.rowCount}`); console.log(`${JSON.stringify(res.rows[0], null, 3)}`); })
+                        .catch(e => { console.log(`we got an error ${e}`); });
                     resolve(true);
                 }
             });
@@ -67,6 +69,7 @@ class DBIO {
                 if ((parameter.length === 0) && (parameterCount === 0)) {
                     parameter = null;
                 }
+                //Collapse remaining tokens into the directory
                 else {
                     parameter.unshift(token.join("/"));
                     //fill any remaining unmatched parameters with nulls
@@ -280,7 +283,8 @@ class TreeBuilder {
     }
     addItem(record) {
         const entry = record.directory.split("/");
-        for (let i = 0; i < entry.length - 1; i++) {
+        for (let i = 0; i < entry.length - 1; i++) // Truncating last directory
+         {
             const key = entry.slice(0, i + 1).join("/");
             if (!this.sMap.has(key)) {
                 this.sMap.set(key, this.idCounter++);
@@ -291,7 +295,8 @@ class TreeBuilder {
                     const parentKey = entry.slice(0, i).join("/");
                     if (this.sMap.has(parentKey)) {
                         const parentID = this.sMap.get(parentKey);
-                        if (i === entry.length - 2) {
+                        if (i === entry.length - 2) // We have a child node
+                         {
                             this.jString.push({ id: this.sMap.get(key), parent: parentID.toString(), text: entry[i], record: record });
                         }
                         else {

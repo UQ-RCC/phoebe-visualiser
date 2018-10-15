@@ -14,17 +14,25 @@ let dbIO;
 let dir = '20151201_Stow/TimeLapse1_minusLPS_Rab13JF646/matlab_decon/raw_files';
 let treeQuery = 'tree';
 exports.cachePath = config.cache;
+function login() {
+    dbIO = db.DBIO.login($("#fname").val(), $("#pword").val());
+    dbIO.login().then(() => {
+        $("#menu-bar").hide();
+        popTree();
+        navControl.NavController.getInstance();
+    }).catch((e) => {
+        $("#db-login").hide();
+        $("#db-reject").show();
+    });
+}
 $(document).ready(() => {
     $("#ok-button").click(e => {
-        dbIO = db.DBIO.login($("#fname").val(), $("#pword").val());
-        dbIO.testConnection().then(() => {
-            $("#menu-bar").hide();
-            popTree();
-            navControl.NavController.getInstance();
-        }).catch((e) => {
-            $("#db-login").hide();
-            $("#db-reject").show();
-        });
+        login();
+    });
+    $("#fname, #pword").keypress(function (event) {
+        if (event.which === 13) {
+            login();
+        }
     });
     $("#fail-button").click(e => { $("#db-login").show(); $("#db-reject").hide(); });
 });
@@ -346,7 +354,8 @@ class FrameController {
     fileLoaded(bufferPack) {
         this.localCacheSize += bufferPack.getSize();
         // this.timeBar.draw();
-        if (!this.glContext) {
+        if (!this.glContext) //TODO fix this is a kludge
+         {
             this.glContext = gl_context_1.GLContext.getInstance();
         }
         if (this.currentFrame === bufferPack.frameNumber) {

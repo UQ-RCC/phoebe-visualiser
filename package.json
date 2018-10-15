@@ -21,22 +21,22 @@
     "electron": "^1.8.1"
   },
   "dependencies": {
-    "@claviska/jquery-minicolors": "^2.2.6",
+    "@claviska/jquery-minicolors": "^2.3.2",
     "@diamondlovesyou/tsm": "^0.7.4",
     "@types/color-string": "^1.5.0",
-    "@types/gl-matrix": "^2.4.0",
-    "@types/jquery": "*",
-    "@types/jstree": "*",
+    "@types/gl-matrix": "^2.4.4",
+    "@types/jquery": "^3.3.17",
+    "@types/jstree": "^3.3.37",
     "@types/numeral": "0.0.22",
-    "@types/pg": "^7.4.1",
+    "@types/pg": "^7.4.11",
     "@types/ws": "^3.2.1",
-    "color-string": "^1.5.2",
-    "gl-matrix": "^2.4.0",
-    "jquery": "*",
-    "jstree": "*",
+    "color-string": "^1.5.3",
+    "gl-matrix": "^2.8.1",
+    "jquery": "^3.3.1",
+    "jstree": "^3.3.5",
     "numeral": "^2.0.6",
-    "pg": "*",
-    "ws": "^3.3.2"
+    "pg": "^7.5.0",
+    "ws": "^3.3.3"
   },
   "repository": {
     "type": "git",

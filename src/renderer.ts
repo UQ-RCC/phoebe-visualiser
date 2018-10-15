@@ -32,21 +32,31 @@ let dir = '20151201_Stow/TimeLapse1_minusLPS_Rab13JF646/matlab_decon/raw_files';
 let treeQuery = 'tree';
 export let cachePath = (config as any).cache;
 
+
+function login()
+{
+    dbIO = db.DBIO.login($("#fname").val() as string, $("#pword").val() as string);
+    dbIO.login().then(() => 
+    {
+        $("#menu-bar").hide();
+        popTree();
+        navControl.NavController.getInstance();
+    }).catch((e) => 
+    {
+        $("#db-login").hide();
+        $("#db-reject").show();            
+    })
+}
+
 $(document).ready(() =>
 {
-    $("#ok-button").click(e => {        
-        dbIO = db.DBIO.login($("#fname").val() as string, $("#pword").val() as string);
-        dbIO.testConnection().then(() => 
-        {
-            $("#menu-bar").hide();
-            popTree();
-            navControl.NavController.getInstance();
-        }).catch((e) => 
-        {
-            $("#db-login").hide();
-            $("#db-reject").show();            
-        })
+    $("#ok-button").click(e => {
+        login();
     })
+
+    $("#fname, #pword").keypress(function(event) {
+        if(event.which === 13) {login();}
+    });
 
     $("#fail-button").click(e => {$("#db-login").show(); $("#db-reject").hide();})
 

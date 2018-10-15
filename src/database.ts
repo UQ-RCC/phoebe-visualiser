@@ -26,7 +26,7 @@ export class DBIO
 	private pool: pg.Pool;
 	readonly queryMap: Map<string, string>;
 	private userName: string;
-	private password: stromg;
+	private password: string;
 
 	public static login(username: string, password: string): DBIO
 	{		
@@ -58,8 +58,7 @@ export class DBIO
 		pg.types.setTypeParser(20, (v: string) => {return parseInt(v)});
 	}
 
-	//TODO clean this mess up...
-	public testConnection(): Promise<boolean>
+	public login(): Promise<boolean>
 	{		
 		return new Promise<boolean>((resolve, reject) =>
 		{
@@ -82,10 +81,13 @@ export class DBIO
 				else
 				{
 					client.release();
+					client.query('select version();')
+						.then(res => {console.log(`rows: ${res.rowCount}`); console.log(`${JSON.stringify(res.rows[0], null, 3)}`);})
+						.catch(e => {console.log(`we got an error ${e}`);});
 					resolve(true);
 				}
-			}
-		}
+			});
+		});
 	}
 
 	//restReq = {dir/dir/.../dir}/pram1/pramN.../operation
