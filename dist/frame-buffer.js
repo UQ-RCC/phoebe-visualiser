@@ -96,6 +96,9 @@ class Frame {
         this.status = frameRecord.status;
         this.id = frameRecord.id;
         this.imageFilename = frameRecord.image_filename;
+        this.width = frameRecord.width;
+        this.height = frameRecord.height;
+        this.depth = frameRecord.depth;
     }
     getFilePath() {
         return this.filename;
@@ -178,7 +181,6 @@ class Segmentation {
         database_1.DBIO.getInstance().queryByObject('get_seg_status', this.id.toString())
             .then(res => {
             res.forEach((row) => {
-                console.log(`${JSON.stringify(row)}`);
                 this.frames.push(new Frame(this, row));
             });
         });
@@ -187,7 +189,7 @@ class Segmentation {
         if (this.active == active) {
             return;
         }
-        this.checkFileBuffer();
+        this.checkFileBuffer(); //TODO file buffer
         this.active = active;
         if (active) {
             //ping db to say this segmentation is active at the current frame.
@@ -224,6 +226,8 @@ class Segmentation {
     setCurrentFrame(frame) {
         this.channel.setCurrentFrame(frame);
         database_1.DBIO.getInstance().queryByObject("activate_frame", this.id, frame);
+        let currentFrame = this.frames[frame];
+        console.log(`active frame: ${frame} ${currentFrame.imageFilename} [${currentFrame.width} ${currentFrame.height} ${currentFrame.depth}]`);
     }
     getCurrentFrame() {
         return this.channel.getCurrentFrame();
@@ -271,6 +275,7 @@ class Channel {
         this.currentFrame = 0;
         this.colour = [127, 127, 200, 1.0];
         this.segmentation = [];
+        this.images = [];
         this.experiment = experiment;
         this.id = channelRecord.id;
         this.name = channelRecord.name;
@@ -278,6 +283,14 @@ class Channel {
         this.colour[0] = channelRecord.colour_rgb[0];
         this.colour[1] = channelRecord.colour_rgb[1];
         this.colour[2] = channelRecord.colour_rgb[2];
+        console.log(`getting chan ${this.id}`);
+        database_1.DBIO.getInstance().queryByObject("get_image_data", this.id)
+            .then(res => {
+            this.images = res;
+            //console.log(`${this.images[0]['filename']} ${this.images[0]['width']} ${this.images[0]['height']} ${this.images[0]['depth']}`);
+            //this.images.forEach((r, i) => {console.log(`${i} -- ${r}`)});
+            //console.log(`${util.inspect(this.images)}`);
+        });
         if (channelRecord.segvalues) {
             channelRecord.segvalues.forEach(s => {
                 this.segmentation.push(new Segmentation(this, s));
@@ -358,6 +371,23 @@ class Experiment {
     }
 }
 exports.Experiment = Experiment;
+function getFile(filename) {
+    console.log(`getting ${filename}`);
+    let req = new XMLHttpRequest();
+    req.responseType = "arraybuffer";
+    req.onload = () => {
+        let inBuffer = req.response;
+        if (inBuffer) {
+            console.log(`--- loaded file ${inBuffer.byteLength}`);
+        }
+        else {
+            console.log(`loaded file fail`);
+        }
+    };
+    req.open("GET", `http://phoebe.rcc.uq.edu.au:1337/${filename}`);
+    req.send();
+}
+exports.getFile = getFile;
 class XHRLoader {
     constructor(xrhPool) {
         this.xhrPool = xrhPool;

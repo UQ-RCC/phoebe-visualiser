@@ -54,14 +54,32 @@
     
     void main(void)
     {
-        float local_light = 0.5 + (0.7 * getDiffuse());        
+        float local_light = 0.5 + (0.7 * getDiffuse());   
         gl_FragColor = vec4(local_light * uColour.rgb, 1.0);
 
-        // gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);       
-        // gl_FragColor = vec4(vNormal.x, vNormal.y, vNormal.z, 1.0);
+        //gl_FragColor = vec4(0.8, 0.8, 0.8, 1.0);
+        
     }
 
 </script>
+
+<script id="shader-fs-text" type="x-shader/x-fragment">
+    precision mediump float;
+    varying vec3 vNormal;
+
+    uniform mat4 uPMatrix;
+    uniform mat4 uMVMatrix;
+    uniform vec3 uVLight;
+    uniform vec4 uColour;
+
+    void main(void)
+    {
+        gl_FragColor = vec4(0.8, 0.8, 0.8, 1.0);
+    }
+
+</script>
+
+
 
 <script>
     require('jstree');

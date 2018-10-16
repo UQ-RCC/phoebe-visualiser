@@ -11,6 +11,7 @@ import * as ute from './utilities';
 import { CLIENT_RENEG_LIMIT } from 'tls';
 import * as glm from 'gl-matrix';
 import { WSAETIMEDOUT } from 'constants';
+import * as util from 'util';
 
 export const enum GlobalStatus
 {
@@ -33,13 +34,16 @@ export interface FrameRecord
     status: string;
     id: number;
     image_filename: string;
+    width: number;
+    height: number;
+    depth: number;
 }
 
 export interface ExperimentRecord
 {
     directory: string;
 	frames: number;
-	channels: ChannelRecord[]
+	channels: ChannelRecord[];
 }
 
 export interface ChannelRecord
@@ -193,7 +197,10 @@ export class Frame
     status: string;    
     msec: number;
     id: number;
-    imageFilename: string
+    imageFilename: string;
+    width: number;
+    height: number;
+    depth: number;
     
 	buffer: string; // Is this a buffer status??
 	// bufferPack: BufferPack;
@@ -207,6 +214,9 @@ export class Frame
         this.status = frameRecord.status;
         this.id = frameRecord.id;
         this.imageFilename = frameRecord.image_filename;
+        this.width = frameRecord.width;
+        this.height = frameRecord.height;
+        this.depth = frameRecord.depth;
 	}
 
 	getFilePath(): string
@@ -339,8 +349,7 @@ export class Segmentation
         .then(res =>
         {
             res.forEach((row) =>
-            {
-                console.log(`${JSON.stringify(row)}`);
+            {                
                 this.frames.push(new Frame(this, row));
             })        
         });
@@ -352,7 +361,7 @@ export class Segmentation
         {
             return;
         }
-        this.checkFileBuffer();
+        this.checkFileBuffer(); //TODO file buffer
         this.active = active;        
         if (active)
         {
@@ -365,6 +374,7 @@ export class Segmentation
         {
             DBIO.getInstance().queryByObject("deactivate_frame", this.id);
         }
+
     }
 
     isActive(): boolean
@@ -403,6 +413,8 @@ export class Segmentation
     {
         this.channel.setCurrentFrame(frame);
         DBIO.getInstance().queryByObject("activate_frame", this.id, frame);
+        let currentFrame = this.frames[frame];
+        console.log(`active frame: ${frame} ${currentFrame.imageFilename} [${currentFrame.width} ${currentFrame.height} ${currentFrame.depth}]`);
     }
 
     getCurrentFrame() : number
@@ -471,10 +483,12 @@ export class Channel
     segmentation: Segmentation[];
     private currentFrame: number = 0;
     private colour: number[] = [127, 127, 200, 1.0];
+    images: string[];
 
     constructor(experiment: Experiment, channelRecord: ChannelRecord)
-    {        
+    {
         this.segmentation = [];
+        this.images = [];
         this.experiment = experiment;
         this.id = channelRecord.id;
         this.name = channelRecord.name;
@@ -482,6 +496,15 @@ export class Channel
         this.colour[0] = channelRecord.colour_rgb[0];
         this.colour[1] = channelRecord.colour_rgb[1];
         this.colour[2] = channelRecord.colour_rgb[2];
+        console.log(`getting chan ${this.id}`);
+        DBIO.getInstance().queryByObject("get_image_data", this.id)
+        .then(res =>
+        {
+            this.images = res;
+            //console.log(`${this.images[0]['filename']} ${this.images[0]['width']} ${this.images[0]['height']} ${this.images[0]['depth']}`);
+            //this.images.forEach((r, i) => {console.log(`${i} -- ${r}`)});
+            //console.log(`${util.inspect(this.images)}`);
+        });
         if (channelRecord.segvalues)
         {
             channelRecord.segvalues.forEach(s => 
@@ -602,6 +625,27 @@ export class Experiment
         })
     }
 
+}
+
+export function getFile(filename: string): void
+{
+    console.log(`getting ${filename}`);
+    let req = new XMLHttpRequest();
+    req.responseType = "arraybuffer";
+    req.onload = () =>
+    {    
+        let inBuffer: ArrayBuffer = req.response;
+        if (inBuffer)
+        {   
+            console.log(`--- loaded file ${inBuffer.byteLength}`);
+        }
+        else
+        {
+            console.log(`loaded file fail`);
+        }
+    }
+    req.open("GET", `http://phoebe.rcc.uq.edu.au:1337/${filename}`);
+    req.send();
 }
 
 class XHRLoader

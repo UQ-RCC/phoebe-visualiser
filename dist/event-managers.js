@@ -224,6 +224,9 @@ class TimeBar {
         barDiv.append(this.canvas);
         dynamicDiv.append(barDiv);
     }
+    getCurrentValue() {
+        return this.currentValue;
+    }
     setFrameCount(frameCount) {
         this.frameCount = frameCount;
         this.dataSize = this.frameCount - 1;
@@ -298,7 +301,8 @@ class TimeBar {
             gl_context_1.GLContext.getInstance().setBufferPack(null);
         }
     }
-    displayCurrentTexture() {
+    displayTexture(width, height, depth) {
+        gl_context_1.GLContext.getInstance().drawImageTexture(width, height, depth);
     }
     resize() {
         this.canvas.width = this.canvas.clientWidth;

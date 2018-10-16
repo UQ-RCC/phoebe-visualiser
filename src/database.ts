@@ -53,6 +53,7 @@ export class DBIO
 		this.queryMap.set('delete_segmentation', 'select * from delete_segmentation($1)');
 		this.queryMap.set('activate_frame', 'select * from activate_frame($1, $2)');
 		this.queryMap.set('deactivate_frame', 'select * from deactivate_frame($1)');
+		this.queryMap.set('get_image_data', 'select * from get_image_data($1)');
 
 		//Warning: We are forcing the db's bigint id types to be ints
 		pg.types.setTypeParser(20, (v: string) => {return parseInt(v)});

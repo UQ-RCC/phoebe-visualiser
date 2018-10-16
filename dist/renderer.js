@@ -26,7 +26,7 @@ function login() {
     });
 }
 $(document).ready(() => {
-    $("#fname").val("nickc");
+    $("#fname").val("uqocairn");
     $("#pword").val("password");
     $("#ok-button").click(e => {
         login();
@@ -154,11 +154,21 @@ class ChannelUI {
         this.segValuesSpan = $("<span>");
         this.segColourButton = $(`<i>`).addClass("fa fa-circle");
         this.segColourSpan = $(`<span>`);
+        this.segImageSpan = $('<input type="checkbox" name="image">');
         this.channelRow = $('<tr>').addClass("channel-row");
         this.segmentationUI = [];
         this.setController = sc;
         this.channel = c;
         this.segLabelSpan.append(this.channel.name);
+        this.segImageSpan.click((e) => {
+            let t = this.setController.getDefaultTimeBar().getCurrentValue();
+            console.log(`${this.channel.images[t]['filename']} ${this.channel.images[t]['width']} ${this.channel.images[t]['height']} ${this.channel.images[t]['depth']}`);
+            frame_buffer_1.getFile(this.channel.images[t]['filename']);
+            let width = this.channel.images[t]['width'];
+            let height = this.channel.images[t]['height'];
+            let depth = this.channel.images[t]['depth'];
+            this.setController.getDefaultTimeBar().displayTexture(width, height, depth);
+        });
         this.segInput.width(0).hide();
         this.segInput.focusout(() => { this.segInput.hide().width(0); });
         this.segInput.keypress((event) => {
@@ -202,7 +212,8 @@ class ChannelUI {
             .append($('<td>').addClass("channel-data").append(this.segAddButton))
             .append($('<td>').addClass("channel-data").append(this.segLabelSpan))
             .append($('<td>').addClass("channel-value-data").append(this.segInput).append(this.segValuesSpan))
-            .append($('<td>').addClass("channel-data").append(this.segColourSpan));
+            .append($('<td>').addClass("channel-data").append(this.segColourSpan))
+            .append($('<td>').addClass("channel-data").append(this.segImageSpan));
         this.channel.segmentation.forEach(s => {
             this.addSegmentation(s);
         });

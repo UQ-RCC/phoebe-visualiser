@@ -5,6 +5,7 @@ import * as glm from 'gl-matrix';
 import * as $ from 'jquery';
 import * as fs from 'fs';
 import { vec3 } from "gl-matrix";
+import * as util from 'util';
 
 export class LightVector
 {
@@ -100,6 +101,36 @@ export class GLMatrix
 
 }
 
+class TexturePack
+{
+    vertexBuf: number[]
+    show: boolean;
+
+    constructor()
+    {
+        this.vertexBuf = [];
+        this.show = false;
+    }
+
+    public setBuffer(w: number, h: number, d: number)
+    {
+        let z = d / 2;
+        this.vertexBuf = [0, 0, z, 0, h, z, w, h, 0]
+    }
+
+    public getBuffer(): number[]
+    {
+        return this.vertexBuf;
+    }
+
+    public getNormal(): number[]
+    {
+        return [0, 0, -1, 0, 0, -1, 0, 0, -1];
+    }
+
+}
+
+
 export class GLContext
 {
 
@@ -115,6 +146,7 @@ export class GLContext
     private arrayBufferId: WebGLBuffer;
     private indexBufferId: WebGLBuffer;
     private shaderProgram: WebGLProgram;
+    private textProgram: WebGLProgram;
     private vertexPositionAttribute: number;
     private normalAttribute: number;
 
@@ -126,6 +158,8 @@ export class GLContext
     private height: number = 0;
     private horizAspect: number = 1;
     private drawCount: number = 0;
+
+    private texturePack: TexturePack;
     
     public static getInstance(): GLContext
     {
@@ -139,6 +173,7 @@ export class GLContext
 
    private constructor()
     {
+        this.texturePack = new TexturePack();
         this.canvas = $("#canvas").get(0) as HTMLCanvasElement;
         this.glMatrix = new GLMatrix();
         this.lightVector = new LightVector();
@@ -164,6 +199,7 @@ export class GLContext
         this.gl.depthFunc(this.gl.LEQUAL);
         this.initBuffers();
         this.initShaders();
+        this.initTextShader();
         this.resize("GLContext::Constructor");
         const mm: MouseManager = new MouseManager(this.canvas, this, this.glMatrix, this.lightVector);
         window.addEventListener("resize", () => { this.resize("Window::Event"); });
@@ -183,6 +219,14 @@ export class GLContext
         this.initGLMatrixInitialised = false;
         this.lightVector.reset();
         this.setBufferPack(this.currentBufferPack);
+    }
+
+    drawImageTexture(width: number, height: number, depth: number)
+    {
+        console.log(`GLContext drawing image texture ${width} ${height} ${depth}`);
+        this.texturePack.setBuffer(width, height, depth);
+        this.texturePack.show = true;
+        this.drawScene("GLContext::drawImageTexture");
     }
 
     setBufferPack(bufferPack: BufferPack): void
@@ -234,23 +278,55 @@ export class GLContext
         }
     }
 
+    private dcount = 0;
+    
     drawScene(from: string): void
     {
         this.drawCount++;        
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+
+       
         
         if (this.currentBufferPack)
         {
+            this.gl.useProgram(this.shaderProgram);
+            this.vertexPositionAttribute = this.gl.getAttribLocation(this.shaderProgram, "aVertexPosition");
+            this.gl.enableVertexAttribArray(this.vertexPositionAttribute);
+            this.normalAttribute = this.gl.getAttribLocation(this.shaderProgram, "aNormal");
+            this.gl.enableVertexAttribArray(this.normalAttribute);
+
             //TODO near far need to be set depending on scene--this is in the bufferpack as well check
             const mPerspective = glm.mat4.perspective(glm.mat4.create(), 45, this.width / this.height, 10, 3000.0);
             const chanColour: glm.vec4 = this.currentBufferPack.getColour();
-            this.setMatrixUniforms(mPerspective, this.glMatrix.getWorldTransform(), this.lightVector.getLightVector(), chanColour); //<-- Set uniforms here.
+            this.setMatrixUniforms(this.shaderProgram, mPerspective, this.glMatrix.getWorldTransform(), this.lightVector.getLightVector(), chanColour); //<-- Set uniforms here.
             
             this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.arrayBufferId);
             this.gl.vertexAttribPointer(this.vertexPositionAttribute, 3, this.gl.FLOAT, false, 0, 0);
             this.gl.vertexAttribPointer(this.normalAttribute, 3, this.gl.FLOAT, false, 0, this.currentBufferPack.numPoints * 4 * 3);
             this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.indexBufferId);
+
             this.gl.drawElements(this.gl.TRIANGLES, this.currentBufferPack.numIndices, this.gl.UNSIGNED_INT, 0);
+        }
+
+        if (this.texturePack.show == true)
+        {
+            this.gl.useProgram(this.textProgram);            
+            this.vertexPositionAttribute = this.gl.getAttribLocation(this.textProgram, "aVertexPosition");
+            this.gl.enableVertexAttribArray(this.vertexPositionAttribute);
+            
+            
+            console.log(`draw triangle`);
+            const mPerspective = glm.mat4.perspective(glm.mat4.create(), 45, this.width / this.height, 10, 3000.0);
+            //const chanColour: glm.vec4 = this.currentBufferPack.getColour();
+            let v4 = glm.vec4.fromValues(0.8, 0.8, 0.8, 1.0);
+            this.setMatrixUniforms(this.textProgram, mPerspective, this.glMatrix.getWorldTransform(), this.lightVector.getLightVector(), v4); //<-- Set uniforms here.
+            //let textBuffID: WebGLBuffer;
+            let textBuf = this.gl.createBuffer();
+            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, textBuf);
+            this.gl.vertexAttribPointer(this.vertexPositionAttribute, 3, this.gl.FLOAT, false, 0, 0);
+            this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.texturePack.getBuffer()), this.gl.STATIC_DRAW);            
+            this.gl.drawArrays(this.gl.TRIANGLES, 0 ,3);
+            console.log(`${this.dcount++} : ${util.inspect(this.texturePack.getBuffer())}`);
         }
 
     }
@@ -286,11 +362,27 @@ export class GLContext
             alert("Unable to initialize the shader program: where the heck is my shader variable");
         }
 
-        this.gl.useProgram(this.shaderProgram);
-        this.vertexPositionAttribute = this.gl.getAttribLocation(this.shaderProgram, "aVertexPosition");
-        this.gl.enableVertexAttribArray(this.vertexPositionAttribute);
-        this.normalAttribute = this.gl.getAttribLocation(this.shaderProgram, "aNormal");
-        this.gl.enableVertexAttribArray(this.normalAttribute);
+        // this.gl.useProgram(this.shaderProgram);
+        // this.vertexPositionAttribute = this.gl.getAttribLocation(this.shaderProgram, "aVertexPosition");
+        // this.gl.enableVertexAttribArray(this.vertexPositionAttribute);
+        // this.normalAttribute = this.gl.getAttribLocation(this.shaderProgram, "aNormal");
+        // this.gl.enableVertexAttribArray(this.normalAttribute);
+
+    }
+
+    private initTextShader(): void
+    {
+        const fragmentShader: WebGLShader = this.getShader("shader-fs-text", null);
+        const vertexShader: WebGLShader = this.getShader("shader-vs", null);
+        this.textProgram = this.gl.createProgram();
+        this.gl.attachShader(this.textProgram, vertexShader);
+        this.gl.attachShader(this.textProgram, fragmentShader);
+        this.gl.linkProgram(this.textProgram);
+
+        if (!this.gl.getProgramParameter(this.textProgram, this.gl.LINK_STATUS))
+        {
+            alert("Unable to initialize the texture shader program");
+        }
 
     }
 
@@ -337,18 +429,18 @@ export class GLContext
 
     }
 
-    private setMatrixUniforms(perspectiveMatrix: glm.mat4, mvMatrix: glm.mat4, lightVector: glm.vec3, colourVector: glm.vec4): void
+    private setMatrixUniforms(shaderProgram: WebGLProgram, perspectiveMatrix: glm.mat4, mvMatrix: glm.mat4, lightVector: glm.vec3, colourVector: glm.vec4): void
     {
-        const pUniform = this.gl.getUniformLocation(this.shaderProgram, "uPMatrix");        
+        const pUniform = this.gl.getUniformLocation(shaderProgram, "uPMatrix");        
         this.gl.uniformMatrix4fv(pUniform, false, new Float32Array(perspectiveMatrix));
 
-        const mvUniform = this.gl.getUniformLocation(this.shaderProgram, "uMVMatrix");        
+        const mvUniform = this.gl.getUniformLocation(shaderProgram, "uMVMatrix");        
         this.gl.uniformMatrix4fv(mvUniform, false, new Float32Array(mvMatrix));
 
-        const vlUniform = this.gl.getUniformLocation(this.shaderProgram, "uVLight");
+        const vlUniform = this.gl.getUniformLocation(shaderProgram, "uVLight");
         this.gl.uniform3fv(vlUniform, new Float32Array(lightVector));
 
-        const vCUniform = this.gl.getUniformLocation(this.shaderProgram, "uColour");        
+        const vCUniform = this.gl.getUniformLocation(shaderProgram, "uColour");        
         this.gl.uniform4fv(vCUniform, new Float32Array(colourVector));
 
     }

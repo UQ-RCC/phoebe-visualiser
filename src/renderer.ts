@@ -17,6 +17,7 @@ import {
     FrameRecord,
     Segmentation,
     SegmentationRecord,
+    getFile
 } from './frame-buffer';
 
 import * as $ from 'jquery';
@@ -50,7 +51,7 @@ function login()
 
 $(document).ready(() =>
 {
-    $("#fname").val("nickc");
+    $("#fname").val("uqocairn");
     $("#pword").val("password");
 
     $("#ok-button").click(e => {
@@ -227,7 +228,8 @@ class ChannelUI
     private segValuesSpan: JQuery = $("<span>");
     private segColourButton: JQuery = $(`<i>`).addClass("fa fa-circle");
     private segColourSpan: JQuery = $(`<span>`);
-
+    private segImageSpan: JQuery = $('<input type="checkbox" name="image">');
+    
     private channelRow: JQuery = $('<tr>').addClass("channel-row");
 
     private setController: SetController;
@@ -240,10 +242,19 @@ class ChannelUI
         this.channel = c;        
         this.segLabelSpan.append(this.channel.name);
 
+        this.segImageSpan.click((e) => {
+            let t = this.setController.getDefaultTimeBar().getCurrentValue();
+            console.log(`${this.channel.images[t]['filename']} ${this.channel.images[t]['width']} ${this.channel.images[t]['height']} ${this.channel.images[t]['depth']}`);
+            getFile(this.channel.images[t]['filename']);
+            let width = this.channel.images[t]['width'] as number;
+            let height = this.channel.images[t]['height'] as number;
+            let depth = this.channel.images[t]['depth'] as number;
+            this.setController.getDefaultTimeBar().displayTexture(width, height, depth);
+        })
+
         this.segInput.width(0).hide();
         this.segInput.focusout(() => { this.segInput.hide().width(0); });
         this.segInput.keypress((event) =>
-
         {
             if (event.which === 13)
             {
@@ -294,7 +305,8 @@ class ChannelUI
             .append($('<td>').addClass("channel-data").append(this.segAddButton))
             .append($('<td>').addClass("channel-data").append(this.segLabelSpan))
             .append($('<td>').addClass("channel-value-data").append(this.segInput).append(this.segValuesSpan))
-            .append($('<td>').addClass("channel-data").append(this.segColourSpan));
+            .append($('<td>').addClass("channel-data").append(this.segColourSpan))
+            .append($('<td>').addClass("channel-data").append(this.segImageSpan));
             
         this.channel.segmentation.forEach(s => {
             this.addSegmentation(s);
@@ -466,7 +478,7 @@ export class SetController
         if (this.currentExperiment)
         {
             this.currentExperiment.processDBMessage(message);
-        }        
+        }
     }
 
 }
@@ -504,7 +516,7 @@ export class FrameController
         }
     }
 
-    setFrame(newFrame: number) {
+    setFrame(newFrame: number) {        
         const bufferPack: BufferPack = this.frames[newFrame];
         loadWindow(bufferPack, 10, this);
         if (bufferPack.state === BufferState.loaded)

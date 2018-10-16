@@ -379,7 +379,6 @@ export class TimeBar {
         this.canvas.onmouseup = (e: MouseEvent) => { this.mouseDown = false };
         this.canvas.onmouseleave = (e: MouseEvent) => { this.mouseDown = false };
         
-        
         window.addEventListener("resize", () => { this.resize(); });
         this.resize();
         
@@ -388,6 +387,11 @@ export class TimeBar {
         barDiv.append(this.canvas);
         dynamicDiv.append(barDiv);
         
+    }
+
+    getCurrentValue(): number
+    {
+        return this.currentValue;
     }
 
     setFrameCount(frameCount: number): void
@@ -484,9 +488,9 @@ export class TimeBar {
         }
     }
 
-    displayCurrentTexture()
+    displayTexture(width: number, height: number, depth: number)
     {
-        
+        GLContext.getInstance().drawImageTexture(width, height, depth);
     }
 
     resize() {
