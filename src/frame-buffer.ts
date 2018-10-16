@@ -495,8 +495,7 @@ export class Channel
         this.channelNumber = channelRecord.channel_number; 
         this.colour[0] = channelRecord.colour_rgb[0];
         this.colour[1] = channelRecord.colour_rgb[1];
-        this.colour[2] = channelRecord.colour_rgb[2];
-        console.log(`getting chan ${this.id}`);
+        this.colour[2] = channelRecord.colour_rgb[2];        
         DBIO.getInstance().queryByObject("get_image_data", this.id)
         .then(res =>
         {

@@ -5,7 +5,6 @@ const nav_elements_1 = require("./nav-elements");
 const glm = require("gl-matrix");
 const $ = require("jquery");
 const gl_matrix_1 = require("gl-matrix");
-const util = require("util");
 class LightVector {
     constructor() {
         this.vLight = glm.vec3.fromValues(0, 0, 1);
@@ -140,12 +139,6 @@ class GLContext {
         this.drawScene("GLContext::drawImageTexture");
     }
     setBufferPack(bufferPack) {
-        if (bufferPack) {
-            console.log(`buffer pack set [${bufferPack.xMag} ${bufferPack.yMag} ${bufferPack.zMag}]`);
-        }
-        else {
-            console.log(`null buffer pack`);
-        }
         this.currentBufferPack = bufferPack;
         if (bufferPack) {
             if (!this.initGLMatrixInitialised) {
@@ -171,7 +164,6 @@ class GLContext {
             this.canvas.height = this.height;
             this.gl.viewport(0, 0, this.width, this.height); // Change to this...
             this.drawScene("GLContext::resize");
-            console.log(`  TGL canvas: ${this.canvas.width} x ${this.canvas.height}`);
         }
     }
     drawScene(from) {
@@ -197,7 +189,6 @@ class GLContext {
             this.gl.useProgram(this.textProgram);
             this.vertexPositionAttribute = this.gl.getAttribLocation(this.textProgram, "aVertexPosition");
             this.gl.enableVertexAttribArray(this.vertexPositionAttribute);
-            console.log(`draw triangle`);
             const mPerspective = glm.mat4.perspective(glm.mat4.create(), 45, this.width / this.height, 10, 3000.0);
             //const chanColour: glm.vec4 = this.currentBufferPack.getColour();
             let v4 = glm.vec4.fromValues(0.8, 0.8, 0.8, 1.0);
@@ -208,7 +199,6 @@ class GLContext {
             this.gl.vertexAttribPointer(this.vertexPositionAttribute, 3, this.gl.FLOAT, false, 0, 0);
             this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.texturePack.getBuffer()), this.gl.STATIC_DRAW);
             this.gl.drawArrays(this.gl.TRIANGLES, 0, 3);
-            console.log(`${this.dcount++} : ${util.inspect(this.texturePack.getBuffer())}`);
         }
     }
     transferBuffers(lsData) {
